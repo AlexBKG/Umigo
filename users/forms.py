@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import AdminUserCreationForm, UserChangeForm, UserCreationForm
+from django.contrib.auth.models import Group
 from .models import CustomUser, Student, Landlord
 
 class CustomUserCreationForm(AdminUserCreationForm):
@@ -14,7 +15,7 @@ class CustomUserCreationForm(AdminUserCreationForm):
     def save(self, commit=True):
         user = super(CustomUserCreationForm, self).save(commit=False)
         user.username = self.cleaned_data["first_name"] + " " + self.cleaned_data["last_name"]
-        user.email = self.cleaned_data["email"]
+
         if commit:
             user.save()
         return user
@@ -31,7 +32,6 @@ class CustomUserChangeForm(UserChangeForm):
     def save(self, commit=True):
         user = super(CustomUserChangeForm, self).save(commit=False)
         user.username = self.cleaned_data["first_name"] + " " + self.cleaned_data["last_name"]
-        user.email = self.cleaned_data["email"]
         if commit:
             user.save()
         return user
@@ -48,7 +48,10 @@ class AdminStudentCreationForm(AdminUserCreationForm):
     def save(self, commit=True):
         user = super(AdminStudentCreationForm, self).save(commit=False)
         user.username = self.cleaned_data["first_name"] + " " + self.cleaned_data["last_name"]
-        user.email = self.cleaned_data["email"]
+
+        students_group, created = Group.objects.get_or_create(name = 'Students')
+        user.groups.add(students_group)
+
         if commit:
             user.save()
         return user
@@ -65,7 +68,7 @@ class StudentChangeForm(UserChangeForm):
     def save(self, commit=True):
         user = super(StudentChangeForm, self).save(commit=False)
         user.username = self.cleaned_data["first_name"] + " " + self.cleaned_data["last_name"]
-        user.email = self.cleaned_data["email"]
+
         if commit:
             user.save()
         return user
@@ -82,7 +85,7 @@ class CustomUserCreationForm(UserCreationForm):
     def save(self, commit=True):
         user = super(CustomUserCreationForm, self).save(commit=False)
         user.username = self.cleaned_data["first_name"] + " " + self.cleaned_data["last_name"]
-        user.email = self.cleaned_data["email"]
+
         if commit:
             user.save()
         return user
@@ -95,9 +98,13 @@ class StudentCreationForm(CustomUserCreationForm):
     def save(self, commit=True):
         user = super(StudentCreationForm, self).save(commit=False)
         user.username = self.cleaned_data["first_name"] + " " + self.cleaned_data["last_name"]
-        user.email = self.cleaned_data["email"]
+
         if commit:
             user.save()
+
+        students_group, created = Group.objects.get_or_create(name = 'Students')
+        user.groups.add(students_group)
+
         return user
 
 class LandlordCreationForm(CustomUserCreationForm):
@@ -112,9 +119,11 @@ class LandlordCreationForm(CustomUserCreationForm):
     def save(self, commit=True):
         user = super(LandlordCreationForm, self).save(commit=False)
         user.username = self.cleaned_data["first_name"] + " " + self.cleaned_data["last_name"]
-        user.email = self.cleaned_data["email"]
-        user.identificationNumber = self.cleaned_data["identificationNumber"]
 
         if commit:
             user.save()
+
+        landlords_group, created = Group.objects.get_or_create(name = 'Landlords')
+        user.groups.add(landlords_group)
+
         return user
