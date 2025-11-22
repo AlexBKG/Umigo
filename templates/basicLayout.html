@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% block title %}
+            Umigo
+        {% endblock %}
+    </title>
+    <link rel="stylesheet" href="{% static 'css/homestyle.css' %}">
+</head>
+<body>
+    <nav>
+        Viviendas | Alianzas | Contacto
+        <a href="/">Volver al inicio</a> |
+        {% if user.is_authenticated %}
+            <form action="{% url 'users:logout' %}" method="post">
+                {% csrf_token %}
+                <button>Cerrar sesión</button>
+            </form>
+        {% else %}
+            <a href="{% url 'users:login' %}">Iniciar sesión</a>
+        {% endif %}
+    </nav>
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{% extends 'basicLayout.html' %}
+
+{% block title %}
+    Umigo: Inicia sesión
+{% endblock %}
+
+{% block content %}
+    <h1>Bienvenido de nuevo, ingresa a tu cuenta</h1>
+    
+    <form action="{% url 'users:login' %}" method="post"> 
+        {% csrf_token %}
+        {{ form }} 
+        {% if request.GET.next %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}"/>
+        {% endif %}
+        <button>Ingresar</button>
+    </form>
+
+    <a href="/users/registerHome/">¿No tienes cuenta? Regístrate aquí</a>
+{% endblock %}
