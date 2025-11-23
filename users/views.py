@@ -1,7 +1,18 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, logout
-from .forms import CustomUserCreationForm, StudentCreationForm, LandlordCreationForm
+from django.contrib.auth.views import PasswordResetView
+from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
+from django.core.mail import EmailMessage
+
+from users.models import CustomUser
+
+from .tokens import account_activation_token
+from .forms import StudentCreationForm, LandlordCreationForm
 
 def registerHomeView(request):
     return render(request, 'users/registerHome.html')
@@ -10,23 +21,58 @@ def landlordRegisterView(request):
     if request.method == "POST":
         form = LandlordCreationForm(request.POST, request.FILES)    
         if form.is_valid():
-            user = form.save()
-            #login(request, user) #In case we want the user to log in immediately and automatically after registering 
-            return redirect("users/landlordSuccesfulRegister.html")
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+            current_site = get_current_site(request)
+            mail_subject = 'Activa tu cuenta Umigo'
+            message = render_to_string('users/activateLandlordEmail.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid':urlsafe_base64_encode(force_bytes(user.pk)),
+                'token':account_activation_token.make_token(user),
+            })
+            to_email = form.cleaned_data.get('email')
+            email = EmailMessage(
+                mail_subject, message, to=[to_email]
+            )
+            email.send()
+            
+            return redirect("/users/landlordSuccessfulRegister")
     else:
         form = LandlordCreationForm()
     return render(request, 'users/landlordRegister.html', {"form" : form})
+
+def landlordSuccessfulRegisterView(request):
+    return render(request, 'users/landlordSuccessfulRegister.html')
 
 def studentRegisterView(request):
     if request.method == "POST":
         form = StudentCreationForm(request.POST)    
         if form.is_valid():
             user = form.save()
-            #login(request, user) #In case we want the user to log in immediately and automatically after registering 
-            return redirect("/")
+            user.is_active = False
+            user.save()
+            current_site = get_current_site(request)
+            mail_subject = 'Activa tu cuenta Umigo'
+            message = render_to_string('users/activateStudentEmail.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'uid':urlsafe_base64_encode(force_bytes(user.pk)),
+                'token':account_activation_token.make_token(user),
+            })
+            to_email = form.cleaned_data.get('email')
+            email = EmailMessage(
+                mail_subject, message, to=[to_email]
+            )
+            email.send()
+            return redirect("/users/studentSuccessfulRegister")
     else:
         form = StudentCreationForm()
     return render(request, 'users/studentRegister.html', {"form" : form})
+
+def studentSuccessfulRegisterView(request):
+    return render(request, 'users/studentSuccessfulRegister.html')
 
 def loginView(request):
     if request.method == "POST":
@@ -45,3 +91,25 @@ def logoutView(request):
     if request.method == "POST":
         logout(request)
         return redirect("/")
+    
+class ResetPasswordView(SuccessMessageMixin, PasswordResetView):
+    template_name = 'users/passwordReset.html'
+    email_template_name = 'users/passwordResetEmail.html'
+    subject_template_name = 'users/passwordResetSubject.txt'
+    success_message = "Te hemos mandado un correo con instrucciones para reiniciar tu contraseña." \
+                      "Si existe una cuenta con el correo que ingresaste, deberías recibir el correo dentro de poco." \
+                      "Si no recibes un correo, por favor asegúrate que has ingresado el correo con el que te registraste, y revisa tu carpeta de spam"
+    success_url = '/'
+
+def activateUser(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = CustomUser.objects.get(pk=uid)
+    except(TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+        user = None
+    if user is not None and account_activation_token.check_token(user, token):
+        user.is_active = True
+        user.save()        
+        return redirect("/users/successfulEmailActivation")
+    else:
+        return redirect("/users/unSuccessfulEmailActivation")
