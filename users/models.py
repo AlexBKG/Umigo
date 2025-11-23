@@ -16,7 +16,7 @@ class CustomUser(AbstractUser):
         return self.username
     
 class Student(CustomUser):
-    favoriteListings = models.ManyToManyField(Listing, blank=True, null=True)
+    favoriteListings = models.ManyToManyField(Listing, blank=True)
 
     def __str__(self):
         return self.username
@@ -25,7 +25,7 @@ class Landlord(CustomUser):
     identificationType = models.CharField()
     identificationNumber = models.CharField()
     identificationCard = models.FileField(upload_to='identificationCards')
-    listings = models.ManyToManyField(Listing, blank=True, null=True)
+    listings = models.ManyToManyField(Listing, blank=True)
 
     def __str__(self):
         return self.username

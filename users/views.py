@@ -12,7 +12,7 @@ def landlordRegisterView(request):
         if form.is_valid():
             user = form.save()
             #login(request, user) #In case we want the user to log in immediately and automatically after registering 
-            return redirect("/")
+            return redirect("users/landlordSuccesfulRegister.html")
     else:
         form = LandlordCreationForm()
     return render(request, 'users/landlordRegister.html', {"form" : form})

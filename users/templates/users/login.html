@@ -9,7 +9,17 @@
     
     <form action="{% url 'users:login' %}" method="post"> 
         {% csrf_token %}
-        {{ form }} 
+        {{ form.non_field_errors }}
+        <div>
+            {{ form.username.errors }}
+            <label for="{{ form.username.id_for_label }}">Nombre de Usuario:</label>
+            {{ form.username }}
+        </div>
+        <div>
+            {{ form.password.errors }}
+            <label for="{{ form.password.id_for_label }}">Contraseña:</label>
+            {{ form.password }}
+        </div>
         {% if request.GET.next %}
             <input type="hidden" name="next" value="{{ request.GET.next }}"/>
         {% endif %}
