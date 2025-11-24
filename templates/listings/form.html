@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}{{ view.object|default:"Create listing" }}{% endblock %}
+
+{% block content %}
+<h2>{% if view.object %}Edit listing{% else %}Create listing{% endif %}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+
+    <h3>Location helper</h3>
+    <p>
+        <label for="id_location_search">Search address or place:</label>
+        <input type="text" id="id_location_search" style="width: 300px;">
+        <button type="button" id="id_location_search_btn">Search</button>
+    </p>
+
+    <div id="map" style="height: 400px; max-width: 600px; border: 1px solid #ccc;"></div>
+
+    <button type="submit">Save</button>
+</form>
+
+{# Leaflet CSS/JS #}
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const latInput = document.getElementById('id_lat');
+    const lngInput = document.getElementById('id_lng');
+    const locationTextInput = document.getElementById('id_location_text');
+    const searchInput = document.getElementById('id_location_search');
+    const searchBtn = document.getElementById('id_location_search_btn');
+    const zoneSelect = document.getElementById('id_zone');
+
+    // Bogotá por defecto
+    const initialLat = latInput.value ? parseFloat(latInput.value) : 4.65;
+    const initialLng = lngInput.value ? parseFloat(lngInput.value) : -74.06;
+
+    const map = L.map('map').setView([initialLat, initialLng], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    let marker = null;
+
+    function setMarker(lat, lng) {
+        if (marker) {
+            marker.setLatLng([lat, lng]);
+        } else {
+            marker = L.marker([lat, lng]).addTo(map);
+        }
+        latInput.value = lat.toFixed(6);
+        lngInput.value = lng.toFixed(6);
+    }
+
+    const ZONE_KEYWORDS = {
+        "usaquén": "Usaquén",
+        "usaquen": "Usaquén",
+        "chapinero": "Chapinero",
+        "santa fe": "Santa Fe",
+        "san cristóbal": "San Cristóbal",
+        "san cristobal": "San Cristóbal",
+        "usme": "Usme",
+        "tunjuelito": "Tunjuelito",
+        "bosa": "Bosa",
+        "kennedy": "Kennedy",
+        "fontibón": "Fontibón",
+        "fontibon": "Fontibón",
+        "engativá": "Engativá",
+        "engativa": "Engativá",
+        "suba": "Suba",
+        "barrios unidos": "Barrios Unidos",
+        "teusaquillo": "Teusaquillo",
+        "los mártires": "Los Mártires",
+        "los martires": "Los Mártires",
+        "antonio nariño": "Antonio Nariño",
+        "antonio narino": "Antonio Nariño",
+        "puente aranda": "Puente Aranda",
+        "la candelaria": "La Candelaria",
+        "rafael uribe uribe": "Rafael Uribe Uribe",
+        "ciudad bolívar": "Ciudad Bolívar",
+        "ciudad bolivar": "Ciudad Bolívar",
+        "sumapaz": "Sumapaz"
+    };
+
+    function autoSelectZoneFromAddress(address) {
+        if (!zoneSelect || !address) return;
+
+        // Construimos un string grande con varios campos de dirección
+        const parts = [
+            address.suburb,
+            address.neighbourhood,
+            address.city_district,
+            address.town,
+            address.city,
+            address.state
+        ].filter(Boolean);
+
+        const fullAddr = parts.join(" ").toLowerCase();
+
+        let matchedZoneName = null;
+        for (const key in ZONE_KEYWORDS) {
+            if (fullAddr.includes(key)) {
+                matchedZoneName = ZONE_KEYWORDS[key];
+                break;
+            }
+        }
+        if (!matchedZoneName) {
+            // No se encontró nada que coincida
+            return;
+        }
+
+        for (const option of zoneSelect.options) {
+            if (!option.value) continue;
+            if (option.text.trim().toLowerCase() === matchedZoneName.toLowerCase()) {
+                zoneSelect.value = option.value;
+                break;
+            }
+        }
+    }
+
+    function autoSelectZoneFromText(text) {
+        if (!zoneSelect || !text) return;
+        const lowered = text.toLowerCase();
+
+        for (const option of zoneSelect.options) {
+            if (!option.value) continue; // saltar opción vacía
+            const label = option.text.toLowerCase();
+
+            // ejemplo: "Teusaquillo - Bogotá" → tomamos "teusaquillo"
+            const mainName = label.split('-')[0].trim();
+
+            if (lowered.includes(mainName)) {
+                zoneSelect.value = option.value;
+                break;
+            }
+        }
+    }
+
+    function reverseGeocode(lat, lng) {
+        const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2'
+                    + '&lat=' + encodeURIComponent(lat)
+                    + '&lon=' + encodeURIComponent(lng)
+                    + '&zoom=16&addressdetails=1';
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.display_name) {
+                    if (locationTextInput) {
+                        locationTextInput.value = data.display_name;
+                    }
+                    autoSelectZoneFromText(data.display_name);
+                }
+                if (data && data.address) {
+                    autoSelectZoneFromAddress(data.address);
+                }
+            })
+            .catch(err => {
+                console.error('Reverse geocode error:', err);
+            });
+    }
+
+    // Si ya hay lat/lng (editar), pon el marker
+    if (latInput.value && lngInput.value) {
+        setMarker(initialLat, initialLng);
+    }
+
+    // Permitir elegir punto haciendo clic en el mapa
+    map.on('click', function (e) {
+        setMarker(e.latlng.lat, e.latlng.lng);
+        reverseGeocode(e.latlng.lat, e.latlng.lng);
+    });
+
+    // Búsqueda por texto usando Nominatim
+    searchBtn.addEventListener('click', function () {
+        const q = searchInput.value.trim();
+        if (!q) return;
+
+        const url = 'https://nominatim.openstreetmap.org/search?format=jsonv2'
+                    + '&limit=1&q=' + encodeURIComponent(q);
+
+        fetch(url)
+            .then(response => response.json())
+            .then(results => {
+                if (results.length > 0) {
+                    const place = results[0];
+                    const lat = parseFloat(place.lat);
+                    const lng = parseFloat(place.lon);
+
+                    map.setView([lat, lng], 16);
+                    setMarker(lat, lng);
+
+                    if (locationTextInput && !locationTextInput.value) {
+                        locationTextInput.value = place.display_name;
+                    }
+                    if (place.address) {
+                        autoSelectZoneFromAddress(place.address);
+                    }
+                } else {
+                    alert('No results found for that address.');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error searching location.');
+            });
+    });
+});
+</script>
+{% endblock %}

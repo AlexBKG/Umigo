@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Umigo{% endblock %}</title>
+</head>
+<body>
+  <header>
+  <h1><a href="{% url 'listing_public_list' %}">Umigo</a></h1>
+  <nav>
+    <a href="{% url 'listing_public_list' %}">Home</a> |
+    <a href="{% url 'landlord_listing_list' %}">My listings</a> |
+    <a href="{% url 'login' %}">Login</a> |
+    <a href="{% url 'logout' %}">Logout</a>
+  </nav>
+  <hr>
+</header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

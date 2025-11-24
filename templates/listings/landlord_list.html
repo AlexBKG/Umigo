@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}My listings{% endblock %}
+{% block content %}
+<h2>My listings</h2>
+<a href="{% url 'listing_create' %}">Create new listing</a>
+<table border="1" cellspacing="0" cellpadding="4">
+  <tr>
+    <th>Location</th>
+    <th>Price</th>
+    <th>Available</th>
+    <th>Views</th>
+    <th>Actions</th>
+  </tr>
+  {% for l in object_list %}
+  <tr>
+    <td>{{ l.location_text }}</td>
+    <td>{{ l.price }}</td>
+    <td>{{ l.available|yesno:"Yes,No" }}</td>
+    <td>{{ l.views }}</td>
+    <td>
+      <a href="{% url 'listing_update' l.pk %}">Edit</a> |
+      <form action="{% url 'listing_toggle' l.pk %}" method="post" style="display:inline">
+        {% csrf_token %}
+        <button type="submit">
+          {% if l.available %}Set unavailable{% else %}Set available{% endif %}
+        </button>
+      </form> |
+      <a href="{% url 'listing_delete' l.pk %}">Delete</a>
+    </td>
+  </tr>
+  {% empty %}
+  <tr><td colspan="5">You have no listings yet.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}
