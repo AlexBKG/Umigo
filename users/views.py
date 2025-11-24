@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, get_user_model
 from django.contrib.auth.views import PasswordResetView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.sites.shortcuts import get_current_site
@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import EmailMessage
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 from users.models import CustomUser
 
@@ -101,7 +102,7 @@ class ResetPasswordView(SuccessMessageMixin, PasswordResetView):
                       "Si no recibes un correo, por favor asegúrate que has ingresado el correo con el que te registraste, y revisa tu carpeta de spam"
     success_url = '/'
 
-def activateUser(request, uidb64, token):
+def activateUserView(request, uidb64, token):
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = CustomUser.objects.get(pk=uid)
@@ -113,3 +114,21 @@ def activateUser(request, uidb64, token):
         return redirect("/users/successfulEmailActivation")
     else:
         return redirect("/users/unSuccessfulEmailActivation")
+
+@login_required 
+def deactivateAccountView(request):
+    if request.method == "POST":
+        user_pk = request.user.pk
+        logout(request)
+        user = get_user_model()
+        user.objects.filter(pk=user_pk).update(is_active=False)
+    return redirect("/")
+
+@login_required 
+def deleteAccountView(request):
+    if request.method == "POST":
+        user_pk = request.user.pk
+        logout(request)
+        user = get_user_model()
+        user.objects.filter(pk=user_pk).delete()
+    return redirect("/")

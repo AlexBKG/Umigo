@@ -15,5 +15,7 @@ urlpatterns = [
     path('passwordReset/', views.ResetPasswordView.as_view(), name="passwordReset"),
     path('passwordResetConfirm/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(template_name='users/passwordResetConfirm.html'), name='passwordResetConfirm'),
     path('passwordResetComplete/', auth_views.PasswordResetCompleteView.as_view(template_name='users/passwordResetComplete.html'), name='passwordResetComplete'),
-    re_path(r'^activateUser/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', views.activateUser, name="activate"),
+    path('deactivateAccount/', views.deactivateAccountView, name="deactivateAccount"),
+    path('deleteAccount/', views.deleteAccountView, name="deleteAccount"),
+    re_path(r'^activateUserView/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', views.activateUserView, name="activate"),
 ]

@@ -20,6 +20,20 @@
                 {% csrf_token %}
                 <button>Cerrar sesión</button>
             </form>
+
+            {% load userTags %}
+
+            {% if request.user|inGroup:"Students" %}
+                <form action="{% url 'users:deactivateAccount' %}" method="post">
+                    {% csrf_token %}
+                    <button>Desactivar cuenta</button>
+                </form>
+            {% endif %}
+
+            <form action="{% url 'users:deleteAccount' %}" method="post">
+                {% csrf_token %}
+                <button>Eliminar cuenta</button>
+            </form>
         {% else %}
             <a href="{% url 'users:login' %}">Iniciar sesión</a>
         {% endif %}
