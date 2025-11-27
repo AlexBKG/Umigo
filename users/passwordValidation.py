@@ -1,7 +1,5 @@
 import re
 from django.core.exceptions import (
-    FieldDoesNotExist,
-    ImproperlyConfigured,
     ValidationError,
 )
 

@@ -8,7 +8,10 @@
     <h1>Registra tus datos para empezar a ofrecer tu propiedad a estudiantes</h1>
     <form action="/users/landlordRegister/" method="post" enctype="multipart/form-data"> 
         {% csrf_token %}
-        {{ form }} 
+        
+        {{ user_form }} 
+        {{ landlord_profile_form }}
+        
         <button>Crear cuenta</button>
     </form>
     <a href="/users/registerHome">Volver</a>

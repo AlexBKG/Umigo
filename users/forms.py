@@ -1,77 +1,24 @@
+import re
 from django import forms
 from django.contrib.auth import password_validation
-from django.contrib.auth.forms import AdminUserCreationForm, UserChangeForm, UserCreationForm
-from django.contrib.auth.models import Group
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.utils.translation import gettext_lazy as _
-from .models import CustomUser, Student, Landlord
-
-
-class CustomUserCreationForm(AdminUserCreationForm):
-    email = forms.EmailField(label = "Correo")
-    first_name = forms.CharField(label = "Nombre")
-    last_name = forms.CharField(label = "Apellidos")
-
-    class Meta:
-        model = CustomUser
-        fields = ("first_name", "last_name", "email")
-
-    def save(self, commit=True):
-        user = super(CustomUserCreationForm, self).save(commit=False)
-        user.username = self.cleaned_data["first_name"] + " " + self.cleaned_data["last_name"]
-
-        if commit:
-            user.save()
-        return user
+from .models import User, Student, Landlord
 
 class CustomUserChangeForm(UserChangeForm):
     email = forms.EmailField(label = "Correo")
     first_name = forms.CharField(label = "Nombre")
     last_name = forms.CharField(label = "Apellidos")
+    is_active = forms.BooleanField(label = "Activo", help_text = "Permite al usuario ingresar a su cuenta, deselecciónalo si el usuario debería estar suspendido")
+    suspension_end_at = forms.DateField(label = "Fecha de fin de la suspensión", required=False, help_text = "La fecha en la que se termina la suspensión del usuario, déjalo vacío si el usuario no está suspendido")
 
     class Meta:
-        model = CustomUser
-        fields = ("first_name", "last_name", "email")
+        model = User
+        fields = ("first_name", "last_name", "email", "suspension_end_at")
 
     def save(self, commit=True):
         user = super(CustomUserChangeForm, self).save(commit=False)
         user.username = self.cleaned_data["first_name"] + " " + self.cleaned_data["last_name"]
-        if commit:
-            user.save()
-        return user
-
-class AdminStudentCreationForm(AdminUserCreationForm):
-    email = forms.EmailField(label = "Correo")
-    first_name = forms.CharField(label = "Nombre")
-    last_name = forms.CharField(label = "Apellidos")
-
-    class Meta:
-        model = Student
-        fields = ("first_name", "last_name", "email")
-
-    def save(self, commit=True):
-        user = super(AdminStudentCreationForm, self).save(commit=False)
-        user.username = self.cleaned_data["first_name"] + " " + self.cleaned_data["last_name"]
-
-        students_group, created = Group.objects.get_or_create(name = 'Students')
-        user.groups.add(students_group)
-
-        if commit:
-            user.save()
-        return user
-
-class StudentChangeForm(UserChangeForm):
-    email = forms.EmailField(label = "Correo")
-    first_name = forms.CharField(label = "Nombre")
-    last_name = forms.CharField(label = "Apellidos")
-
-    class Meta:
-        model = Student
-        fields = ("first_name", "last_name", "email")
-
-    def save(self, commit=True):
-        user = super(StudentChangeForm, self).save(commit=False)
-        user.username = self.cleaned_data["first_name"] + " " + self.cleaned_data["last_name"]
-
         if commit:
             user.save()
         return user
@@ -104,7 +51,7 @@ class CustomUserCreationForm(UserCreationForm):
     }
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = ["first_name", "last_name", "email", "password1", "password2"]
         labels = {
             "email": _("Correo"),
@@ -114,45 +61,16 @@ class CustomUserCreationForm(UserCreationForm):
 
     def save(self, commit=True):
         user = super(CustomUserCreationForm, self).save(commit=False)
-        user.username = self.cleaned_data["first_name"] + " " + self.cleaned_data["last_name"]
+        user.username = re.sub("  +", " ", self.cleaned_data["first_name"]) + " " + re.sub("  +", " ", self.cleaned_data["last_name"])
 
         if commit:
             user.save()
         return user
     
-class StudentCreationForm(CustomUserCreationForm):
-    class Meta(CustomUserCreationForm.Meta):
-        model = Student        
+class LandlordCreationForm(forms.ModelForm):
+    national_id = forms.CharField(label = "Número de documento", max_length=20)
+    id_url = forms.FileField(label = "Carga de documento")
 
-    def save(self, commit=True):
-        user = super(StudentCreationForm, self).save(commit=False)
-        user.username = self.cleaned_data["first_name"] + " " + self.cleaned_data["last_name"]
-
-        if commit:
-            user.save()
-
-        students_group, created = Group.objects.get_or_create(name = 'Students')
-        user.groups.add(students_group)
-
-        return user
-
-class LandlordCreationForm(CustomUserCreationForm):
-    identificationType = forms.CharField(label = "Tipo de documento")
-    identificationNumber = forms.CharField(label = "Número de documento")
-    identificationCard = forms.FileField(label = "Carga de documento")
-
-    class Meta(CustomUserCreationForm.Meta):
+    class Meta:
         model = Landlord
-        fields = ["first_name", "last_name", "email", "password1", "password2", "identificationType", "identificationNumber", "identificationCard"]
-
-    def save(self, commit=True):
-        user = super(LandlordCreationForm, self).save(commit=False)
-        user.username = self.cleaned_data["first_name"] + " " + self.cleaned_data["last_name"]
-
-        if commit:
-            user.save()
-
-        #landlords_group, created = Group.objects.get_or_create(name = 'Landlords') Opted for manually adding the landlord group and its permissions, so admins can verify identification
-        #user.groups.add(landlords_group)
-
-        return user
+        fields = ["national_id", "id_url"]

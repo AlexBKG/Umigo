@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from .validators import UsernameValidator
+
 # Create your models here.
 class Report(models.Model):
     pass
@@ -8,24 +10,40 @@ class Report(models.Model):
 class Listing(models.Model):
     pass
 
-class CustomUser(AbstractUser):
-    #__isSuspended = models.BooleanField() #Seems like is_active field works for this purpose
-    suspensionEndDate = models.DateField(blank=True, null=True)
+class User(AbstractUser):
+    username_validator = UsernameValidator()
+
+    username = models.CharField(
+        "username",
+        max_length=150,
+        unique=True,
+        help_text= "Requerido. 150 caracteres o menos. Solo letras, espacios y el caracter _",
+        validators=[username_validator],
+        error_messages={
+            "unique": "Ya existe un usuario con ese nombre.",
+        },
+    )
+    
+
+    email = models.EmailField("Dirección de correo", blank=False, unique=True, error_messages={"unique": "Ya existe una cuenta registrada con ese correo.",})
+    suspension_end_at = models.DateField(blank=True, null=True)
 
     def __str__(self):
         return self.username
     
-class Student(CustomUser):
+class Student(models.Model):
+    user = models.OneToOneField(User, on_delete = models.CASCADE, related_name = 'student_profile')
     favoriteListings = models.ManyToManyField(Listing, blank=True)
 
     def __str__(self):
-        return self.username
+        return self.user.username
     
-class Landlord(CustomUser):
-    identificationType = models.CharField()
-    identificationNumber = models.CharField()
-    identificationCard = models.FileField(upload_to='identificationCards')
+class Landlord(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='landlord_profile')
+    national_id = models.CharField(max_length=20)
+    id_url = models.FileField(upload_to='identificationCards')
+
     listings = models.ManyToManyField(Listing, blank=True)
 
     def __str__(self):
-        return self.username
+        return self.user.username
