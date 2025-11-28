@@ -1,0 +1,9 @@
+{% autoescape off %}
+  Hola {{user.username}},
+  
+  Por favor haz click en el link para confirmar tu registro http://{{ domain }}{% url 'users:activate' uidb64=uid token=token %}  
+  Una vez lo hagas, tomará 2 días para que los administradores revisen tu documento de identidad y activen tu cuenta, mientras tanto, tras verificar tu correo, podrás iniciar sesión pero no podrás acceder a ninguna de las funcionalidades o contenidos de Umigo
+
+  Sinceramente,
+  El equipo de Umigo
+{% endautoescape %}

@@ -1,0 +1,30 @@
+{% extends 'notAuthenticatedLayout.html' %}
+
+{% block title %}
+    Umigo: Inicia sesión
+{% endblock %}
+
+{% block content %}  
+    <h1>Bienvenido de nuevo, ingresa a tu cuenta</h1>
+        <form action="{% url 'users:login' %}" method="post"> 
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div>
+                {{ form.username.errors }}
+                <label for="{{ form.username.id_for_label }}">Nombre de Usuario:</label>
+                {{ form.username }}
+            </div>
+            <div>
+                {{ form.password.errors }}
+                <label for="{{ form.password.id_for_label }}">Contraseña:</label>
+                {{ form.password }}
+            </div>
+            {% if request.GET.next %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}"/>
+            {% endif %}
+            <button>Ingresar</button>
+        </form>
+
+        <a href="{% url 'users:passwordReset' %}">¿Olvidaste tu contraseña?</a>
+        <a href="{% url 'users:registerHome' %}">¿No tienes cuenta? Regístrate aquí</a>
+{% endblock %}

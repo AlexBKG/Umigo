@@ -1,0 +1,27 @@
+{% extends "authenticatedLayout.html" %}
+
+{% block title %}Listings - Umigo{% endblock %}
+
+{% block content %}
+
+{% load userTags %}
+{% if request.user|inGroup:"Students" %}
+
+<h2>Available listings</h2>
+
+<ul>
+  {% for l in object_list %}
+    <li>
+      <a href="{% url 'listings:listing_detail' l.pk %}">
+        {{ l.location_text }} - ${{ l.price }}
+      </a>
+      (rooms: {{ l.rooms }}, bathrooms: {{ l.bathrooms }})
+    </li>
+  {% empty %}
+    <li>No listings yet.</li>
+  {% endfor %}
+</ul>
+
+{% endif %}
+
+{% endblock %}

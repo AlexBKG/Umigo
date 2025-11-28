@@ -1,0 +1,7 @@
+{% autoescape off %}
+  Hola {{user.username}},
+  
+  Por favor haz click en el link para confirmar tu registro http://{{ domain }}{% url 'users:activate' uidb64=uid token=token %}  
+  Sinceramente,
+  El equipo de Umigo
+{% endautoescape %}

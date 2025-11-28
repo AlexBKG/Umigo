@@ -1,0 +1,4 @@
+body { font-family: system-ui, Arial, sans-serif; margin: 1.25rem; }
+header, footer { margin-bottom: 1rem; }
+h1 a { text-decoration: none; color: inherit; }
+form input { margin-right: .5rem; }

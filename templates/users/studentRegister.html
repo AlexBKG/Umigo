@@ -1,0 +1,15 @@
+{% extends 'notAuthenticatedLayout.html' %}
+
+{% block title %}
+    Umigo: Nuevo estudiante
+{% endblock %}
+
+{% block content %}
+    <h1>Crea tu cuenta gratis para descubrir tu hogar universitario ideal</h1>
+    <form action="{% url 'users:studentRegister' %}" method="post"> 
+        {% csrf_token %}
+        {{ form }} 
+        <button>Crear cuenta</button>
+    </form>
+    <a href="{% url 'users:registerHome' %}">Volver</a>
+{% endblock %}
