@@ -6,7 +6,7 @@
 
 {% block content %}
     <h1>Registra tus datos para empezar a ofrecer tu propiedad a estudiantes</h1>
-    <form action="/users/landlordRegister/" method="post" enctype="multipart/form-data"> 
+    <form action="{% url 'users:landlordRegister' %}" method="post" enctype="multipart/form-data"> 
         {% csrf_token %}
         
         {{ user_form }} 
@@ -14,5 +14,5 @@
         
         <button>Crear cuenta</button>
     </form>
-    <a href="/users/registerHome">Volver</a>
+    <a href="{% url 'users:registerHome' %}">Volver</a>
 {% endblock %}

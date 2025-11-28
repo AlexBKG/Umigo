@@ -3,11 +3,7 @@ from django.db import models
 
 from .validators import UsernameValidator
 
-# Create your models here.
 class Report(models.Model):
-    pass
-
-class Listing(models.Model):
     pass
 
 class User(AbstractUser):
@@ -33,7 +29,6 @@ class User(AbstractUser):
     
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete = models.CASCADE, related_name = 'student_profile')
-    favoriteListings = models.ManyToManyField(Listing, blank=True)
 
     def __str__(self):
         return self.user.username
@@ -42,8 +37,6 @@ class Landlord(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='landlord_profile')
     national_id = models.CharField(max_length=20)
     id_url = models.FileField(upload_to='identificationCards')
-
-    listings = models.ManyToManyField(Listing, blank=True)
 
     def __str__(self):
         return self.user.username

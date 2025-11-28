@@ -46,7 +46,7 @@ def landlordRegisterView(request):
             )
             email.send()
             
-            return redirect("/users/landlordSuccessfulRegister")
+            return redirect("users/landlordSuccessfulRegister")
     else:
         user_form = CustomUserCreationForm()
         landlord_profile_form = LandlordCreationForm()
@@ -81,7 +81,7 @@ def studentRegisterView(request):
                 mail_subject, message, to=[to_email]
             )
             email.send()
-            return redirect("/users/studentSuccessfulRegister")
+            return redirect("users/studentSuccessfulRegister")
     else:
         form = CustomUserCreationForm()
     return render(request, 'users/studentRegister.html', {"form" : form})
@@ -143,6 +143,6 @@ def activateUserView(request, uidb64, token):
     if user is not None and account_activation_token.check_token(user, token):
         user.is_active = True
         user.save()        
-        return redirect("/users/successfulEmailActivation")
+        return redirect("users/successfulEmailActivation")
     else:
-        return redirect("/users/unSuccessfulEmailActivation")
+        return redirect("users/unSuccessfulEmailActivation")

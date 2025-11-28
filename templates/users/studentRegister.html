@@ -6,10 +6,10 @@
 
 {% block content %}
     <h1>Crea tu cuenta gratis para descubrir tu hogar universitario ideal</h1>
-    <form action="/users/studentRegister/" method="post"> 
+    <form action="{% url 'users:studentRegister' %}" method="post"> 
         {% csrf_token %}
         {{ form }} 
         <button>Crear cuenta</button>
     </form>
-    <a href="/users/registerHome">Volver</a>
+    <a href="{% url 'users:registerHome' %}">Volver</a>
 {% endblock %}

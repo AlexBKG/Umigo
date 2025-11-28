@@ -6,5 +6,5 @@
 
 {% block content %}
     <h1>Gracias por confirmar tu cuenta por correo</h1>
-    <p>Ahora puedes <a href="/users/login/">iniciar sesión</a> en Umigo</p>
+    <p>Ahora puedes <a href="{% url 'users:login' %}">iniciar sesión</a> en Umigo</p>
 {% endblock %}

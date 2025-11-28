@@ -12,32 +12,44 @@
     <link rel="stylesheet" href="{% static 'css/homestyle.css' %}">
 </head>
 <body>
-    <nav>
-        Viviendas | Alianzas | Contacto
-        <a href="/">Volver al inicio</a> |
-        {% if user.is_authenticated %}
-            <form action="{% url 'users:logout' %}" method="post">
-                {% csrf_token %}
-                <button>Cerrar sesión</button>
-            </form>
+    <header>
+        <nav>           
+            {% if user.is_authenticated %}
+                {% load userTags %}
 
-            {% load userTags %}
+                {% if request.user|inGroup:"Students" %}
+                    <a href="{% url 'listings:listing_public_list' %}">Browse Listings</a> |
+                {% endif %}
 
-            {% if request.user|inGroup:"Students" %}
-                <form action="{% url 'users:deactivateAccount' %}" method="post">
+                {% if request.user|inGroup:"Landlords" %}
+                    <a href="{% url 'listings:landlord_listing_list' %}">My listings</a> |
+                {% endif %}
+
+                <form action="{% url 'users:logout' %}" method="post">
                     {% csrf_token %}
-                    <button>Desactivar cuenta</button>
+                    <button>Cerrar sesión</button>
                 </form>
+
+                {% if request.user|inGroup:"Students" %}
+                    <form action="{% url 'users:deactivateAccount' %}" method="post">
+                        {% csrf_token %}
+                        <button>Desactivar cuenta</button>
+                    </form>
+                {% endif %}
+
+                <form action="{% url 'users:deleteAccount' %}" method="post">
+                    {% csrf_token %}
+                    <button>Eliminar cuenta</button>
+                </form>
+            {% else %}
+                <a href="{% url 'users:login' %}">Iniciar sesión</a>
             {% endif %}
 
-            <form action="{% url 'users:deleteAccount' %}" method="post">
-                {% csrf_token %}
-                <button>Eliminar cuenta</button>
-            </form>
-        {% else %}
-            <a href="{% url 'users:login' %}">Iniciar sesión</a>
-        {% endif %}
-    </nav>
+            Viviendas | Alianzas | Contacto
+            <a href="/">Volver al inicio</a> |
+        </nav>
+    </header>
+    <hr>
     <main>
         {% block precontent %}
         {% endblock %}

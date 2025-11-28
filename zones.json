@@ -1,0 +1,22 @@
+[
+  { "model": "listings.zone", "pk": 1, "fields": { "name": "Usaquén", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 2, "fields": { "name": "Chapinero", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 3, "fields": { "name": "Santa Fe", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 4, "fields": { "name": "San Cristóbal", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 5, "fields": { "name": "Usme", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 6, "fields": { "name": "Tunjuelito", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 7, "fields": { "name": "Bosa", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 8, "fields": { "name": "Kennedy", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 9, "fields": { "name": "Fontibón", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 10, "fields": { "name": "Engativá", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 11, "fields": { "name": "Suba", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 12, "fields": { "name": "Barrios Unidos", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 13, "fields": { "name": "Teusaquillo", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 14, "fields": { "name": "Los Mártires", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 15, "fields": { "name": "Antonio Nariño", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 16, "fields": { "name": "Puente Aranda", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 17, "fields": { "name": "La Candelaria", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 18, "fields": { "name": "Rafael Uribe Uribe", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 19, "fields": { "name": "Ciudad Bolívar", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }},
+  { "model": "listings.zone", "pk": 20, "fields": { "name": "Sumapaz", "city": "Bogotá", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z" }}
+]

@@ -25,6 +25,6 @@
             <button>Ingresar</button>
         </form>
 
-        <a href="/users/passwordReset/">¿Olvidaste tu contraseña?</a>
-        <a href="/users/registerHome/">¿No tienes cuenta? Regístrate aquí</a>
+        <a href="{% url 'users:passwordReset' %}">¿Olvidaste tu contraseña?</a>
+        <a href="{% url 'users:registerHome' %}">¿No tienes cuenta? Regístrate aquí</a>
 {% endblock %}

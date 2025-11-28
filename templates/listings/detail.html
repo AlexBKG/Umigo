@@ -1,0 +1,16 @@
+{% extends "anyAuthenticationLayout.html" %}
+
+{% block title %}Listing details{% endblock %}
+
+{% block content %}
+<h2>{{ object.location_text }}</h2>
+<p>Price: ${{ object.price }}</p>
+<p>Zone: {{ object.zone.name }} - {{ object.zone.city }}</p>
+<p>Rooms: {{ object.rooms }}</p>
+<p>Bathrooms: {{ object.bathrooms }}</p>
+<p>Utilities: ${{ object.utilities_price }}</p>
+<p>Available: {{ object.available|yesno:"Yes,No" }}</p>
+<p>Views: {{ object.views }}</p>
+
+<a href="{% url 'listings:listing_public_list' %}">Back to listings</a>
+{% endblock %}
