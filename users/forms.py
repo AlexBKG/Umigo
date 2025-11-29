@@ -1,8 +1,9 @@
 import re
 from django import forms
 from django.contrib.auth import password_validation
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm, SetPasswordForm
 from django.utils.translation import gettext_lazy as _
+
 from .models import User, Student, Landlord
 
 class CustomUserChangeForm(UserChangeForm):
@@ -74,3 +75,9 @@ class LandlordCreationForm(forms.ModelForm):
     class Meta:
         model = Landlord
         fields = ["national_id", "id_url"]
+
+class PasswordForm(SetPasswordForm):
+    error_messages = {
+        **SetPasswordForm.error_messages,
+        "password_mismatch": "Las contraseñas no coinciden.",  # your custom text
+    }
