@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, get_user_model
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.views import PasswordResetView
+from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
 from django.contrib.auth.models import Group
 from django.contrib.messages.views import SuccessMessageMixin
 from django.contrib.sites.shortcuts import get_current_site
@@ -10,11 +10,12 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.core.mail import EmailMessage
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse_lazy
 
 from users.models import User, Student
 
 from .tokens import account_activation_token
-from .forms import CustomUserCreationForm, LandlordCreationForm
+from .forms import CustomUserCreationForm, LandlordCreationForm, PasswordForm
 
 def registerHomeView(request):
     return render(request, 'users/registerHome.html')
@@ -81,7 +82,7 @@ def studentRegisterView(request):
                 mail_subject, message, to=[to_email]
             )
             email.send()
-            return redirect("users/studentSuccessfulRegister")
+            return redirect("users:studentSuccessfulRegister")
     else:
         form = CustomUserCreationForm()
     return render(request, 'users/studentRegister.html', {"form" : form})
@@ -134,6 +135,11 @@ class ResetPasswordView(SuccessMessageMixin, PasswordResetView):
                       "Si no recibes un correo, por favor asegúrate que has ingresado el correo con el que te registraste, y revisa tu carpeta de spam"
     success_url = '/'
 
+class PasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = "users/passwordResetConfirm.html"
+    success_url = reverse_lazy("users:passwordResetComplete")
+    form_class = PasswordForm
+
 def activateUserView(request, uidb64, token):
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
@@ -143,6 +149,12 @@ def activateUserView(request, uidb64, token):
     if user is not None and account_activation_token.check_token(user, token):
         user.is_active = True
         user.save()        
-        return redirect("users/successfulEmailActivation")
+        return redirect("users:successfulEmailActivation")
     else:
-        return redirect("users/unSuccessfulEmailActivation")
+        return redirect("users:unSuccessfulEmailActivation")
+    
+def successfulEmailActivationView(request):
+    return render(request, 'users/successfulEmailActivation.html')
+
+def unSuccessfulEmailActivationView(request):
+    return render(request, 'users/unSuccessfulEmailActivationView.html')
