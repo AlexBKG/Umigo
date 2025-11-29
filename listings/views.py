@@ -2,14 +2,19 @@ from django.db import models
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import (
-    ListView, DetailView,
-    CreateView, UpdateView, DeleteView, View
+    ListView, DetailView, CreateView, UpdateView, DeleteView, View
 )
+from django.views.generic.edit import FormMixin
 from django.db.models import Count, Avg
+from django.conf import settings
+from django.http import HttpResponseForbidden
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import Listing
-from .forms import ListingForm
+from .models import Listing, Comment
+from .forms import ListingForm, CommentForm
 from .mixins import LandlordRequiredMixin
+from users.models import Landlord, Student
+from django.core.exceptions import PermissionDenied
 
 
 # --------- VISTAS PÚBLICAS (estudiante / cualquiera) ----------
@@ -31,6 +36,9 @@ class ListingPublicListView(ListView):
 class ListingDetailView(DetailView):
     """
     Detalle público de un anuncio.
+    Aquí mostramos SIEMPRE los comentarios, y dejamos comentar a:
+      - estudiantes (en cualquier anuncio)
+      - landlord dueño del anuncio
     """
     model = Listing
     template_name = 'listings/detail.html'
@@ -41,6 +49,35 @@ class ListingDetailView(DetailView):
         Listing.objects.filter(pk=obj.pk).update(views=models.F('views') + 1)
         obj.refresh_from_db(fields=['views'])
         return obj
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        listing = self.object
+
+        # todos ven los comentarios del anuncio
+        context['comments'] = (
+            Comment.objects
+            .filter(listing=listing)
+            .select_related('author')
+            .order_by('created_at')
+        )
+
+        # ¿puede el usuario comentar?
+        user = self.request.user
+        can_comment = False
+        if user.is_authenticated:
+            # es estudiante
+            is_student = hasattr(user, 'student_profile')
+            # es landlord
+            landlord = getattr(user, 'landlord_profile', None)
+            is_owner_landlord = bool(landlord and listing.owner_id == landlord.id)
+
+            if is_student or is_owner_landlord:
+                can_comment = True
+
+        context['can_comment'] = can_comment
+        context['comment_form'] = CommentForm()  # formulario vacío para el template
+        return context
 
 
 # --------- DASHBOARD DEL ARRENDADOR (OWNER) ----------
@@ -106,6 +143,33 @@ class ListingToggleAvailabilityView(LandlordRequiredMixin, View):
         return redirect('listings:landlord_listing_list')
 
 
+class CommentDeleteView(LoginRequiredMixin, DeleteView):
+    model = Comment
+    template_name = 'listings/comment_confirm_delete.html'
+
+    def get_success_url(self):
+        # regresar al detalle del anuncio
+        return reverse_lazy('listings:listing_detail', kwargs={'pk': self.object.listing_id})
+
+    def dispatch(self, request, *args, **kwargs):
+        comment = self.get_object()
+        user = request.user
+
+        # ¿Es el autor del comentario?
+        is_author = (comment.author == user)
+
+        # ¿Es el arrendador dueño del anuncio?
+        # Asumo que Landlord tiene un campo OneToOne llamado "user"
+        # y Listing.owner es un Landlord.
+        has_landlord_profile = hasattr(user, 'landlord_profile')
+        is_listing_owner = has_landlord_profile and (comment.listing.owner == user.landlord_profile)
+
+        if user.is_superuser or is_author or is_listing_owner:
+            return super().dispatch(request, *args, **kwargs)
+
+        return HttpResponseForbidden("No tienes permiso para eliminar este comentario.")
+
+
 class LandlordListingStatsView(LandlordRequiredMixin, ListView):
     """
     Estadísticas básicas del arrendador.
@@ -120,3 +184,33 @@ class LandlordListingStatsView(LandlordRequiredMixin, ListView):
             .order_by('-views')
         )
 
+class CommentCreateView(View):
+    """
+    Crea un comentario para un listing.
+    Permite:
+      - estudiantes (en cualquier anuncio)
+      - landlord dueño del anuncio
+    """
+    def post(self, request, pk):
+        listing = get_object_or_404(Listing, pk=pk)
+
+        if not request.user.is_authenticated:
+            raise PermissionDenied("Debe iniciar sesión para comentar.")
+
+        user = request.user
+        is_student = hasattr(user, 'student_profile')
+        landlord = getattr(user, 'landlord_profile', None)
+        is_owner_landlord = bool(landlord and listing.owner_id == landlord.id)
+
+        if not (is_student or is_owner_landlord):
+            # ni estudiante, ni landlord dueño -> no puede comentar
+            raise PermissionDenied("No tiene permiso para comentar en este anuncio.")
+
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.listing = listing
+            comment.author = user
+            comment.save()
+
+        return redirect('listings:listing_detail', pk=listing.pk)

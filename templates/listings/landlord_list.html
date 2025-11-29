@@ -32,6 +32,7 @@
           </button>
         </form> |
         <a href="{% url 'listings:listing_delete' l.pk %}">Delete</a>
+        <a href="{% url 'listings:listing_detail' l.pk %}">Ver detalles</a>
       </td>
     </tr>
     {% empty %}

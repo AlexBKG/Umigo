@@ -15,4 +15,8 @@ urlpatterns = [
     path('landlord/listings/<int:pk>/delete/', views.ListingDeleteView.as_view(), name='listing_delete'),
     path('landlord/listings/<int:pk>/toggle/', views.ListingToggleAvailabilityView.as_view(), name='listing_toggle'),
     path('landlord/listings/stats/', views.LandlordListingStatsView.as_view(), name='landlord_listing_stats'),
+
+    #Comentarios
+    path('listing/<int:pk>/comment/', views.CommentCreateView.as_view(), name='comment_create'),
+    path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='comment_delete'),
 ]

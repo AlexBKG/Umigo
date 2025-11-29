@@ -4,13 +4,53 @@
 
 {% block content %}
 <h2>{{ object.location_text }}</h2>
-<p>Price: ${{ object.price }}</p>
-<p>Zone: {{ object.zone.name }} - {{ object.zone.city }}</p>
-<p>Rooms: {{ object.rooms }}</p>
-<p>Bathrooms: {{ object.bathrooms }}</p>
-<p>Utilities: ${{ object.utilities_price }}</p>
-<p>Available: {{ object.available|yesno:"Yes,No" }}</p>
-<p>Views: {{ object.views }}</p>
+<p><b>Price:</b> ${{ object.price }}</p>
+<p><b>Zone:</b> {{ object.zone.name }} - {{ object.zone.city }}</p>
+<p><b>Rooms:</b> {{ object.rooms }}</p>
+<p><b>Bathrooms:</b> {{ object.bathrooms }}</p>
+<p><b>Utilities price:</b> ${{ object.utilities_price }}</p>
+<p><b>Available:</b> {{ object.available|yesno:"Yes,No" }}</p>
+<p><b>Views:</b> {{ object.views }}</p>
 
+<hr>
+<h3>Comentarios</h3>
+
+<ul>
+  {% for comment in comments %}
+    <li style="margin-bottom: 0.75rem;">
+      <strong>
+        {{ comment.author.get_full_name|default:comment.author.username }}
+      </strong><br>
+      <small>{{ comment.created_at|date:"d/m/Y H:i" }}</small><br>
+      {{ comment.text|linebreaks }}
+      {% if user.is_authenticated and comment.author_id == user.id %}
+        <form action="{% url 'listings:comment_delete' comment.pk %}" method="post">
+          {% csrf_token %}
+          <button type="submit">Eliminar</button>
+        </form>
+      {% endif %}
+  {% empty %}
+    <p>No hay comentarios todavía.</p>
+  {% endfor %}
+</ul>
+
+<hr>
+{% if can_comment %}
+  <h4>Agregar comentario</h4>
+  <form action="{% url 'listings:comment_create' object.pk %}" method="post">
+    {% csrf_token %}
+    {{ comment_form.text.errors }}
+    {{ comment_form.text }}
+    <br>
+    <button type="submit">Enviar</button>
+  </form>
+{% else %}
+  <p>
+    Debes iniciar sesión como estudiante o ser el arrendador dueño del anuncio
+    para poder comentar.
+  </p>
+{% endif %}
+
+<br>
 <a href="{% url 'listings:listing_public_list' %}">Back to listings</a>
 {% endblock %}
