@@ -1,0 +1,10 @@
+{% autoescape off %}
+  Hola {{user.username}},
+  
+  El arriendo http://{{ domain }}{% url 'listings:listing_detail' listing %} en tus favoritos está disponible, ¡es una oportunidad imperdible!
+  
+  Si no quieres recibir más notificaciones sobre este arriendo, quítalo de tus favoritos en el sitio de Umigo
+
+  Sinceramente,
+  El equipo de Umigo
+{% endautoescape %}

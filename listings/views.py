@@ -9,12 +9,12 @@ from django.db.models import Count, Avg
 from django.conf import settings
 from django.http import HttpResponseForbidden
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
+from django.contrib.sites.shortcuts import get_current_site
 
 from .models import Listing, Comment
 from .forms import ListingForm, CommentForm
 from .mixins import LandlordRequiredMixin
-from users.models import Landlord, Student
-from django.core.exceptions import PermissionDenied
 
 
 # --------- VISTAS PÚBLICAS (estudiante / cualquiera) ----------
@@ -178,6 +178,9 @@ class ListingToggleAvailabilityView(LandlordRequiredMixin, View):
         listing = get_object_or_404(Listing, pk=pk, owner=landlord)
         listing.available = not listing.available
         listing.save(update_fields=['available'])
+
+        if listing.available:
+            listing.notifyAvailabilityToStudents(get_current_site(request).domain)
         return redirect('listings:landlord_listing_list')
 
 

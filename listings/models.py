@@ -36,6 +36,11 @@ class Listing(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def notifyAvailabilityToStudents(self, domain):
+        favoritedStudents = self.favorited_by.all()
+        for student in favoritedStudents:
+            student.receiveAvailabilityNotification(domain, self)
+    
     def __str__(self):
         return f"{self.location_text} ({self.price})"
 
