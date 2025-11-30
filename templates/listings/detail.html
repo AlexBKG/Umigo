@@ -12,7 +12,23 @@
 <p><b>Available:</b> {{ object.available|yesno:"Yes,No" }}</p>
 <p><b>Views:</b> {{ object.views }}</p>
 
+{% if can_add_favorite or can_remove_favorite %}
+    <hr>
+    <p><b>Favoritos:</b> {{ favorited_by }}</p>
+    {% if can_add_favorite %}
+        <form action="{% url 'listings:addFavorite' object.pk %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Añadir a Favoritos</button>
+        </form>
+    {% elif can_remove_favorite %}
+        <form action="{% url 'listings:removeFavorite' object.pk %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Quitar de Favoritos</button>
+        </form>
+    {% endif %}
+{% endif %}
 <hr>
+
 <h3>Comentarios</h3>
 
 <ul>

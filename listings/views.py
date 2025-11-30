@@ -1,5 +1,5 @@
 from django.db import models
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView, View
@@ -49,10 +49,12 @@ class ListingDetailView(DetailView):
         Listing.objects.filter(pk=obj.pk).update(views=models.F('views') + 1)
         obj.refresh_from_db(fields=['views'])
         return obj
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         listing = self.object
+
+        context['favorited_by'] = listing.favorited_by.count()
 
         # todos ven los comentarios del anuncio
         context['comments'] = (
@@ -77,8 +79,44 @@ class ListingDetailView(DetailView):
 
         context['can_comment'] = can_comment
         context['comment_form'] = CommentForm()  # formulario vacío para el template
+
+        # Can the user add/remove favorite?
+        can_add_favorite = False
+        can_remove_favorite = False
+        if user.is_authenticated and hasattr(user, 'student_profile'):
+            student = getattr(user, 'student_profile', None)
+            is_favorited = listing.favorited_by.filter(pk=student.pk).exists()
+            if is_favorited:
+                can_remove_favorite = True
+            else:
+                can_add_favorite = True
+
+        context['can_add_favorite'] = can_add_favorite
+        context['can_remove_favorite'] = can_remove_favorite
+
         return context
 
+def listingAddFavoriteView(request, pk):
+    listing = get_object_or_404(Listing, pk=pk)
+
+    if request.method == "POST":
+        user = request.user
+        student = getattr(user, 'student_profile', None)
+        
+        listing.favorited_by.add(student)
+
+    return redirect('listings:listing_detail', pk=listing.pk)
+
+def listingRemoveFavoriteView(request, pk):
+    listing = get_object_or_404(Listing, pk=pk)
+
+    if request.method == "POST":
+        user = request.user
+        student = getattr(user, 'student_profile', None)
+        
+        listing.favorited_by.remove(student)
+
+    return redirect('listings:listing_detail', pk=listing.pk)
 
 # --------- DASHBOARD DEL ARRENDADOR (OWNER) ----------
 

@@ -7,6 +7,8 @@ urlpatterns = [
     # Público
     path('listings/', views.ListingPublicListView.as_view(), name='listing_public_list'),
     path('listing/<int:pk>/', views.ListingDetailView.as_view(), name='listing_detail'),
+    path('listing/<int:pk>/addFavorite', views.listingAddFavoriteView, name='addFavorite'),
+    path('listing/<int:pk>/removeFavorite', views.listingRemoveFavoriteView, name='removeFavorite'),
 
     # Landlord
     path('landlord/listings/', views.LandlordListingListView.as_view(), name='landlord_listing_list'),

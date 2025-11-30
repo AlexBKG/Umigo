@@ -47,7 +47,7 @@ def landlordRegisterView(request):
             )
             email.send()
             
-            return redirect("users/landlordSuccessfulRegister")
+            return redirect("users:landlordSuccessfulRegister")
     else:
         user_form = CustomUserCreationForm()
         landlord_profile_form = LandlordCreationForm()
