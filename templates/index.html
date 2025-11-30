@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umi★Go</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-orange: #ff6b35;
+            --dark-teal: #1a4d5c;
+            --light-gray: #f5f5f5;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .btn-login {
+            background-color: var(--primary-orange);
+            color: white;
+            border-radius: 5px;
+            padding: 10px 25px;
+        }
+        
+        .btn-login:hover {
+            background-color: #e55a2b;
+            color: white;
+        }
+        
+        .hero-section {
+            background: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200');
+            background-size: cover;
+            background-position: center;
+            padding: 80px 0;
+        }
+        
+        .hero-title {
+            color: var(--dark-teal);
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .btn-orange {
+            background-color: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+        
+        .btn-orange:hover {
+            background-color: #e55a2b;
+        }
+        
+        .reserve-badge {
+            background-color: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            padding: 8px 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 15px;
+        }
+        
+        .why-section {
+            background-color: var(--light-gray);
+            padding: 60px 0;
+        }
+        
+        .feature-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            height: 100%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card.dark {
+            background-color: var(--dark-teal);
+            color: white;
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--primary-orange);
+        }
+        
+        .properties-section {
+            padding: 60px 0;
+        }
+        
+        .property-card {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .property-img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+        
+        .property-info {
+            padding: 20px;
+            background-color: white;
+        }
+        
+        .property-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--dark-teal);
+        }
+        
+        .btn-details {
+            background-color: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+        }
+        
+        .testimonials-section {
+            background-color: var(--light-gray);
+            padding: 60px 0;
+        }
+        
+        .testimonial-card {
+            background-color: #95a5b0;
+            border-radius: 15px;
+            padding: 30px;
+            color: white;
+            position: relative;
+        }
+        
+        .testimonial-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid white;
+            position: absolute;
+            top: -40px;
+        }
+        
+        .stars {
+            color: #ffc107;
+        }
+        
+        .footer-section {
+            background-color: var(--dark-teal);
+            color: white;
+            padding: 60px 0 30px;
+        }
+        
+        .footer-mascot {
+            font-size: 8rem;
+        }
+        
+        .social-links a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <img src="img/IconoUmigo.png" alt="Umi★Go" height="65px">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#viviendas">Viviendas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#alianzas">Alianzas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contacto">Contacto</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a class="btn btn-login" href="login.html">
+                            <i class="bi bi-person-circle"></i> Iniciar sesión
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="hero-title">Tu hogar universitario en Bogotá<br>¡Fácil, seguro y con ambiente <span style="color: var(--primary-orange);">Umi★Go</span></h1>
+                    <p class="lead mb-4">Residencias diseñadas para que solo te preocupes por estudiar. Cerca de tu universidad, con todo incluido y la seguridad que papá y mamá necesitan.</p>
+                    <button class="btn btn-orange">Ver opciones disponibles</button>
+                    <span class="reserve-badge">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <strong>Reserva 100% Online</strong>
+                    </span>
+                </div>
+                <div class="col-lg-6">
+                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600" alt="Estudiante" class="img-fluid rounded">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us -->
+    <section class="why-section">
+        <div class="container">
+            <h2 class="text-center mb-5">¿Por qué <span style="color: var(--primary-orange);">elegirnos</span>?</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="bi bi-shield-check feature-icon"></i>
+                        <h4>Seguridad total</h4>
+                        <p>Acceso controlado, vigilancia 24/7 y monitoreo constante. Su tranquilidad es nuestra prioridad.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card dark">
+                        <i class="bi bi-house-heart feature-icon"></i>
+                        <h4>Todo Incluido</h4>
+                        <p>Arriendo, servicios públicos, Wi-Fi de alta velocidad, aseo y lavandería. ¡Todo en una sola factura, cero sorpresas!</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="bi bi-mortarboard feature-icon"></i>
+                        <h4>Cerca de tu U</h4>
+                        <p>Ubicaciones estratégicas cerca de las principales universidades de Bogotá. Ahorra tiempo y dinero en transporte.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Properties Section -->
+    <section class="properties-section" id="viviendas">
+        <div class="container">
+            <h2 class="text-center mb-4">Tu Residencia <span style="color: var(--primary-orange);">ideal</span> te espera.</h2>
+            <p class="text-center mb-5">Explora nuestras opciones.</p>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="property-card">
+                        <img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400" alt="Casa familiar" class="property-img">
+                        <div class="property-info">
+                            <h5>Casa familiar</h5>
+                            <p class="property-price">$000000 COP</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted"><i class="bi bi-geo-alt"></i> Bogotá</small>
+                                <button class="btn btn-details">Ver detalles</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="property-card">
+                        <img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400" alt="Loft Norte" class="property-img">
+                        <div class="property-info">
+                            <h5>Loft Norte</h5>
+                            <p class="property-price">$000000 COP</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted"><i class="bi bi-geo-alt"></i> Bogotá</small>
+                                <button class="btn btn-details">Ver detalles</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="property-card">
+                        <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400" alt="Casa familiar" class="property-img">
+                        <div class="property-info">
+                            <h5>Casa familiar</h5>
+                            <p class="property-price">$000000 COP</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted"><i class="bi bi-geo-alt"></i> Bogotá</small>
+                                <button class="btn btn-details">Ver detalles</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-secondary">Conoce todas las propiedades</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials-section">
+        <div class="container">
+            <h2 class="text-center mb-3">Testimonios</h2>
+            <p class="text-center mb-5">Ellos ya son parte de la <strong>familia Umi★Go</strong></p>
+            
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="testimonial-card position-relative" style="margin-top: 40px;">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" alt="Oscar D." class="testimonial-avatar">
+                        <div style="margin-top: 50px;">
+                            <div class="stars mb-2">★★★★★</div>
+                            <p class="mb-2">Me encanta la seguridad, mi mamá está <strong>tranquila</strong></p>
+                            <small>Óscar D. - Universidad de los Andes</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="testimonial-card position-relative" style="margin-top: 40px;">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" alt="Alexa M." class="testimonial-avatar">
+                        <div style="margin-top: 50px;">
+                            <div class="stars mb-2">★★★★★</div>
+                            <p class="mb-2">Adoro tener mi espacio y compartir con <strong>gente increíble</strong></p>
+                            <small>Alexa M. - Universidad Nacional</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-center">
+                    <img src="img/mascota.png" alt="Umi★Go" height="350" style="margin-top: -150px; margin-left: 300px;"> 
+                    
+                </div>
+                <div class="col-md-6" style="margin-top: -40px;">
+                    <h3 class="mb-4">¿Buscas un hogar en Bogotá?</h3>
+                    <p>Síguenos en nuestras redes sociales<br>y conoce todas nuestras ofertas</p>
+                    <div class="social-links mt-4">
+                        <a href="#"><i class="bi bi-tiktok"></i> @Umigo_Oficial</a>
+                        <a href="#"><i class="bi bi-instagram"></i> @Umigo_Oficial</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
