@@ -4,16 +4,12 @@ from django.urls import reverse_lazy
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView, View
 )
-from django.views.generic.edit import FormMixin
-from django.db.models import Count, Avg
-from django.conf import settings
 from django.http import HttpResponseForbidden
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .models import Listing, Comment, Review
 from .forms import ListingForm, CommentForm, ReviewForm
 from .mixins import LandlordRequiredMixin
-from users.models import Landlord, Student
 from django.core.exceptions import PermissionDenied
 
 
@@ -263,27 +259,20 @@ class ReviewCreateView(View):
         return redirect('listings:listing_detail', pk=listing.pk)
 
 class ReviewDeleteView(LoginRequiredMixin, DeleteView):
-    model = Comment
-    template_name = 'listings/comment_confirm_delete.html'
+    model = Review
+    template_name = 'listings/review_confirm_delete.html'
 
     def get_success_url(self):
-        # regresar al detalle del anuncio
         return reverse_lazy('listings:listing_detail', kwargs={'pk': self.object.listing_id})
 
     def dispatch(self, request, *args, **kwargs):
-        comment = self.get_object()
+        review = self.get_object()
         user = request.user
+        
+        #is the user the author of the review?
+        is_author = review.author.user == user
 
-        # ¿Es el autor del comentario?
-        is_author = (comment.author == user)
-
-        # ¿Es el arrendador dueño del anuncio?
-        # Asumo que Landlord tiene un campo OneToOne llamado "user"
-        # y Listing.owner es un Landlord.
-        has_landlord_profile = hasattr(user, 'landlord_profile')
-        is_listing_owner = has_landlord_profile and (comment.listing.owner == user.landlord_profile)
-
-        if user.is_superuser or is_author or is_listing_owner:
+        if user.is_superuser or is_author:
             return super().dispatch(request, *args, **kwargs)
 
-        return HttpResponseForbidden("No tienes permiso para eliminar este comentario.")
+        return HttpResponseForbidden("No tienes permiso para eliminar esta reseña.")

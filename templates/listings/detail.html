@@ -4,13 +4,14 @@
 
 {% block content %}
 <h2>{{ object.location_text }}</h2>
-<p><b>Price:</b> ${{ object.price }}</p>
-<p><b>Zone:</b> {{ object.zone.name }} - {{ object.zone.city }}</p>
-<p><b>Rooms:</b> {{ object.rooms }}</p>
-<p><b>Bathrooms:</b> {{ object.bathrooms }}</p>
-<p><b>Utilities price:</b> ${{ object.utilities_price }}</p>
-<p><b>Available:</b> {{ object.available|yesno:"Yes,No" }}</p>
-<p><b>Views:</b> {{ object.views }}</p>
+<p><b>Precio:</b> ${{ object.price }}</p>
+<p><b>Zona:</b> {{ object.zone.name }} - {{ object.zone.city }}</p>
+<p><b>Número de habitaciones:</b> {{ object.rooms }}</p>
+<p><b>Baños:</b> {{ object.bathrooms }}</p>
+<p><b>Precio de servicios:</b> ${{ object.utilities_price }}</p>
+<p><b>Disponible:</b> {{ object.available|yesno:"Sí,No" }}</p>
+<p><b>Visitas:</b> {{ object.views }}</p>
+<p><b>Popularidad:</b> {{ object.popularity }}</p>
 
 <hr>
 <h3>Comentarios</h3>
@@ -94,6 +95,6 @@
 {% endif %}
 
 <br>
-<a href="{% url 'listings:listing_public_list' %}">Back to listings</a>
+<a href="{% url 'listings:listing_public_list' %}">Volver a publicaciones</a>
 
 {% endblock %}

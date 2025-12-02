@@ -1,5 +1,6 @@
 from django.db import models
 from users.models import Landlord, Student
+from django.db.models import Avg
 from django.conf import settings  # al inicio del archivo, si aún no está
 
 class Zone(models.Model):
