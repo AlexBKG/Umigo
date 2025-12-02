@@ -1,5 +1,5 @@
 from django import forms
-from .models import Listing, Comment
+from .models import Listing, Comment, Review
 
 
 class ListingForm(forms.ModelForm):
@@ -31,4 +31,19 @@ class CommentForm(forms.ModelForm):
         }
         labels = {
             'text': 'Comentario'
+        }
+
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['text', 'rating']
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Escribe tu reseña...'
+            })
+        }
+        labels = {
+            'text': 'Reseña'
         }

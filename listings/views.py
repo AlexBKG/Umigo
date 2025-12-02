@@ -10,8 +10,8 @@ from django.conf import settings
 from django.http import HttpResponseForbidden
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import Listing, Comment
-from .forms import ListingForm, CommentForm
+from .models import Listing, Comment, Review
+from .forms import ListingForm, CommentForm, ReviewForm
 from .mixins import LandlordRequiredMixin
 from users.models import Landlord, Student
 from django.core.exceptions import PermissionDenied
@@ -62,6 +62,14 @@ class ListingDetailView(DetailView):
             .order_by('created_at')
         )
 
+        #Everyone sees the listing's reviews
+        context['reviews'] = (
+            Review.objects
+            .filter(listing=listing)
+            .select_related('author')
+            .order_by('created_at')
+        )
+
         # ¿puede el usuario comentar?
         user = self.request.user
         can_comment = False
@@ -77,6 +85,17 @@ class ListingDetailView(DetailView):
 
         context['can_comment'] = can_comment
         context['comment_form'] = CommentForm()  # formulario vacío para el template
+
+        # can the user review?
+        can_review = False
+        if user.is_authenticated:
+            student = getattr(user, 'student_profile', None)
+
+            can_review = student and not Review.objects.filter(listing = listing, author = student)
+
+        context['can_review'] = can_review
+        context['review_form'] = ReviewForm()  # Empty form for the template
+
         return context
 
 
@@ -214,3 +233,57 @@ class CommentCreateView(View):
             comment.save()
 
         return redirect('listings:listing_detail', pk=listing.pk)
+    
+class ReviewCreateView(View):
+    """
+    Creates a review for a listing.
+    Allows:
+      - students (in any listing)
+    """
+    def post(self, request, pk):
+        listing = get_object_or_404(Listing, pk=pk)
+
+        if not request.user.is_authenticated:
+            raise PermissionDenied("Debe iniciar sesión para dejar reseñas.")
+
+        user = request.user
+        student = getattr(user, 'student_profile', None)
+
+        if not student or Review.objects.filter(listing = listing, author = student):
+            #If the user is not a student or if they have already left a review, they cannot leave another one
+            raise PermissionDenied("No tiene permiso para dejar reseñas en este anuncio.")
+
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.listing = listing
+            review.author = student
+            review.save()
+
+        return redirect('listings:listing_detail', pk=listing.pk)
+
+class ReviewDeleteView(LoginRequiredMixin, DeleteView):
+    model = Comment
+    template_name = 'listings/comment_confirm_delete.html'
+
+    def get_success_url(self):
+        # regresar al detalle del anuncio
+        return reverse_lazy('listings:listing_detail', kwargs={'pk': self.object.listing_id})
+
+    def dispatch(self, request, *args, **kwargs):
+        comment = self.get_object()
+        user = request.user
+
+        # ¿Es el autor del comentario?
+        is_author = (comment.author == user)
+
+        # ¿Es el arrendador dueño del anuncio?
+        # Asumo que Landlord tiene un campo OneToOne llamado "user"
+        # y Listing.owner es un Landlord.
+        has_landlord_profile = hasattr(user, 'landlord_profile')
+        is_listing_owner = has_landlord_profile and (comment.listing.owner == user.landlord_profile)
+
+        if user.is_superuser or is_author or is_listing_owner:
+            return super().dispatch(request, *args, **kwargs)
+
+        return HttpResponseForbidden("No tienes permiso para eliminar este comentario.")

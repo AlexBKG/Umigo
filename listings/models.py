@@ -77,3 +77,32 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'Comment {self.id} on listing {self.listing_id}'
+    
+class Review(models.Model):
+    listing = models.ForeignKey(
+        Listing,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    author = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    text = models.TextField(max_length=1000)
+
+    class StarRating(models.IntegerChoices):
+        ONE_STAR = 1, "1 estrella"
+        TWO_STARS = 2, "2 estrellas"
+        THREE_STARS = 3, "3 estrellas"
+        FOUR_STARS = 4, "4 estrellas"
+        FIVE_STARS = 5, "5 estrellas"
+
+    rating = models.IntegerField(choices=StarRating)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Review {self.id} on listing {self.listing_id}'
