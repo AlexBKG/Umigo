@@ -19,4 +19,8 @@ urlpatterns = [
     #Comentarios
     path('listing/<int:pk>/comment/', views.CommentCreateView.as_view(), name='comment_create'),
     path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='comment_delete'),
+
+    #Reviews
+    path('listing/<int:pk>/review/', views.ReviewCreateView.as_view(), name='review_create'),
+    path('review/<int:pk>/delete/', views.ReviewDeleteView.as_view(), name='review_delete'),
 ]

@@ -4,17 +4,13 @@ from django.urls import reverse_lazy
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView, View
 )
-from django.views.generic.edit import FormMixin
-from django.db.models import Count, Avg
-from django.conf import settings
 from django.http import HttpResponseForbidden
 from django.contrib.auth.mixins import LoginRequiredMixin
-
-from .models import Listing, ListingPhoto, Comment
-from .forms import ListingForm, CommentForm
-from .mixins import LandlordRequiredMixin
-from users.models import Landlord, Student
 from django.core.exceptions import PermissionDenied
+
+from .models import Listing, ListingPhoto, Comment, Review
+from .forms import ListingForm, CommentForm, ReviewForm
+from .mixins import LandlordRequiredMixin
 
 
 # --------- VISTAS PÚBLICAS (estudiante / cualquiera) ----------
@@ -62,6 +58,14 @@ class ListingDetailView(DetailView):
             .order_by('created_at')
         )
 
+        #Everyone sees the listing's reviews
+        context['reviews'] = (
+            Review.objects
+            .filter(listing=listing)
+            .select_related('author')
+            .order_by('created_at')
+        )
+
         # ¿puede el usuario comentar?
         user = self.request.user
         can_comment = False
@@ -77,6 +81,17 @@ class ListingDetailView(DetailView):
 
         context['can_comment'] = can_comment
         context['comment_form'] = CommentForm()  # formulario vacío para el template
+
+        # can the user review?
+        can_review = False
+        if user.is_authenticated:
+            student = getattr(user, 'student_profile', None)
+
+            can_review = student and not Review.objects.filter(listing = listing, author = student)
+
+        context['can_review'] = can_review
+        context['review_form'] = ReviewForm()  # Empty form for the template
+
         return context
 
 
@@ -288,3 +303,50 @@ class CommentCreateView(View):
             comment.save()
 
         return redirect('listings:listing_detail', pk=listing.pk)
+    
+class ReviewCreateView(View):
+    """
+    Creates a review for a listing.
+    Allows:
+      - students (in any listing)
+    """
+    def post(self, request, pk):
+        listing = get_object_or_404(Listing, pk=pk)
+
+        if not request.user.is_authenticated:
+            raise PermissionDenied("Debe iniciar sesión para dejar reseñas.")
+
+        user = request.user
+        student = getattr(user, 'student_profile', None)
+
+        if not student or Review.objects.filter(listing = listing, author = student):
+            #If the user is not a student or if they have already left a review, they cannot leave another one
+            raise PermissionDenied("No tiene permiso para dejar reseñas en este anuncio.")
+
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.listing = listing
+            review.author = student
+            review.save()
+
+        return redirect('listings:listing_detail', pk=listing.pk)
+
+class ReviewDeleteView(LoginRequiredMixin, DeleteView):
+    model = Review
+    template_name = 'listings/review_confirm_delete.html'
+
+    def get_success_url(self):
+        return reverse_lazy('listings:listing_detail', kwargs={'pk': self.object.listing_id})
+
+    def dispatch(self, request, *args, **kwargs):
+        review = self.get_object()
+        user = request.user
+        
+        #is the user the author of the review?
+        is_author = review.author.user == user
+
+        if user.is_superuser or is_author:
+            return super().dispatch(request, *args, **kwargs)
+
+        return HttpResponseForbidden("No tienes permiso para eliminar esta reseña.")

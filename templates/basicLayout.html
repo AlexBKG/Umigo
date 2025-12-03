@@ -30,7 +30,7 @@
                     <button>Cerrar sesión</button>
                 </form>
 
-                {% if request.user|inGroup:"Students" %}
+                {% if request.user|inGroup:"Students" or request.user.is_superuser%}
                     <form action="{% url 'users:deactivateAccount' %}" method="post">
                         {% csrf_token %}
                         <button>Desactivar cuenta</button>

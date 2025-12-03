@@ -1,6 +1,6 @@
 {% extends "authenticatedLayout.html" %}
 
-{% block title %}My listings{% endblock %}
+{% block title %}Mis publicaciones{% endblock %}
 
 {% block content %}
 
@@ -35,7 +35,7 @@
         </td>
 
         <td>${{ l.price }}</td>
-        <td>{{ l.available|yesno:"Si,No" }}</td>
+        <td>{{ l.available|yesno:"Sí,No" }}</td>
         <td>{{ l.views }}</td>
 
         <td>

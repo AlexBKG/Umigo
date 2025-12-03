@@ -1,12 +1,12 @@
 {% extends "authenticatedLayout.html" %}
 
-{% block title %}Listing stats{% endblock %}
+{% block title %}Estadísticas de mi publicación{% endblock %}
 
 {% block content %}
 
 {% load userTags %}
 {% if request.user|inGroup:"Landlords" %}
-  <h2>Listing statistics</h2>
+  <h2>Estadísticas</h2>
   <table border="1" cellspacing="0" cellpadding="4">
     <tr>
       <th>Arriendo</th>

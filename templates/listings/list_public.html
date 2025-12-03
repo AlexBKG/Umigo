@@ -1,11 +1,11 @@
 {% extends "authenticatedLayout.html" %}
 
-{% block title %}Listings - Umigo{% endblock %}
+{% block title %}Publicaciones - Umigo{% endblock %}
 
 {% block content %}
 
 {% load userTags %}
-{% if request.user|inGroup:"Students" %}
+{% if request.user|inGroup:"Students" or request.user.is_superuser %}
 
 <h2>Arriendos disponibles</h2>
 
