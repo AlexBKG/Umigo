@@ -21,17 +21,17 @@ class ReportAdmin(ModelAdmin):
     
     Note: Moderation is handled by Report.save() in models.py
     """
-    list_display = ('id', 'reporter_link', 'target_display', 'reason_short', 'status', 'created_at', 'reviewed_by_link')
-    list_filter = ('status', 'created_at', 'updated_at')
+    list_display = ('id', 'reporter_link', 'report_type_display', 'target_display', 'reason_short', 'status', 'created_at', 'reviewed_by_link')
+    list_filter = ('status', 'report_type', 'created_at', 'updated_at')
     search_fields = ('reason', 'reporter__username', 'reporter__email')
-    readonly_fields = ('reporter', 'created_at', 'updated_at', 'reviewed_by')
+    readonly_fields = ('reporter', 'created_at', 'updated_at')
     date_hierarchy = 'created_at'
     ordering = ('-created_at',)
     actions = ['accept_reports', 'reject_reports']
 
     fieldsets = (
         ('Report Information', {
-            'fields': ('reporter', 'reason', 'status')
+            'fields': ('reporter', 'report_type', 'reason', 'status')
         }),
         ('Review Information', {
             'fields': ('reviewed_by',),
@@ -42,6 +42,20 @@ class ReportAdmin(ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+    
+    def report_type_display(self, obj):
+        """Display report type with icon."""
+        icons = {
+            'FRAUD': '💰',
+            'HARASSMENT': '⚠️',
+            'INAPPROPRIATE_LANGUAGE': '🗣️',
+            'MISLEADING_CONTENT': '❌',
+            'OTHER': '📝',
+        }
+        icon = icons.get(obj.report_type, '📝')
+        label = obj.get_report_type_display()
+        return format_html('{} {}', icon, label)
+    report_type_display.short_description = 'Tipo'
 
     def reporter_link(self, obj):
         """Link to reporter's user admin page."""
@@ -86,6 +100,26 @@ class ReportAdmin(ModelAdmin):
             return format_html('<a href="{}">{}</a>', url, obj.reviewed_by.user.username)
         return '-'
     reviewed_by_link.short_description = 'Reviewed By'
+    
+    def save_model(self, request, obj, form, change):
+        """
+        Auto-assign reviewed_by to current admin when status changes from UNDER_REVIEW.
+        """
+        if change:  # Only for existing reports
+            old_status = Report.objects.get(pk=obj.pk).status
+            new_status = obj.status
+            
+            # If status changed from UNDER_REVIEW to ACCEPTED/REJECTED
+            if old_status == 'UNDER_REVIEW' and new_status in ('ACCEPTED', 'REJECTED'):
+                if not obj.reviewed_by:
+                    # Get or create Admin instance for current user
+                    from operations.models import Admin
+                    admin_obj, created = Admin.objects.get_or_create(
+                        user=request.user
+                    )
+                    obj.reviewed_by = admin_obj
+        
+        super().save_model(request, obj, form, change)
 
     @admin.action(description='✅ Accept selected reports')
     def accept_reports(self, request, queryset):

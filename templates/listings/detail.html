@@ -115,12 +115,25 @@
       </div>
       <form method="post" action="{% url 'inquiries:report_listing' object.pk %}">
         {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
         <div class="modal-body">
           <p>¿Estás seguro de reportar esta publicación?</p>
           <p><strong>{{ object.location_text }}</strong></p>
+          
+          <div class="mb-3">
+            <label for="reportListingType" class="form-label">Tipo de reporte:</label>
+            <select class="form-select" id="reportListingType" name="report_type" required>
+              <option value="FRAUD">Fraude</option>
+              <option value="HARASSMENT">Acoso</option>
+              <option value="INAPPROPRIATE_LANGUAGE">Lenguaje inapropiado</option>
+              <option value="MISLEADING_CONTENT">Contenido engañoso</option>
+              <option value="OTHER" selected>Otro</option>
+            </select>
+          </div>
+          
           <div class="mb-3">
             <label for="reportListingReason" class="form-label">Motivo del reporte:</label>
-            <textarea class="form-control" id="reportListingReason" name="reason" rows="4" maxlength="255" required placeholder="Describe el motivo de tu reporte (10-255 caracteres)"></textarea>
+            <textarea class="form-control" id="reportListingReason" name="reason" rows="4" minlength="10" maxlength="255" required placeholder="Describe el motivo de tu reporte (mín. 10, máx. 255 caracteres)"></textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -145,12 +158,25 @@
         </div>
         <form method="post" action="{% url 'inquiries:report_user' landlord_user.pk %}">
           {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.path }}">
           <div class="modal-body">
             <p>¿Estás seguro de reportar a este arrendador?</p>
             <p><strong>{{ landlord_user.get_full_name|default:landlord_user.username }}</strong></p>
+            
+            <div class="mb-3">
+              <label for="reportLandlordType" class="form-label">Tipo de reporte:</label>
+              <select class="form-select" id="reportLandlordType" name="report_type" required>
+                <option value="FRAUD">Fraude</option>
+                <option value="HARASSMENT">Acoso</option>
+                <option value="INAPPROPRIATE_LANGUAGE">Lenguaje inapropiado</option>
+                <option value="MISLEADING_CONTENT">Contenido engañoso</option>
+                <option value="OTHER" selected>Otro</option>
+              </select>
+            </div>
+            
             <div class="mb-3">
               <label for="reportLandlordReason" class="form-label">Motivo del reporte:</label>
-              <textarea class="form-control" id="reportLandlordReason" name="reason" rows="4" maxlength="255" required placeholder="Describe el motivo de tu reporte (10-255 caracteres)"></textarea>
+              <textarea class="form-control" id="reportLandlordReason" name="reason" rows="4" minlength="10" maxlength="255" required placeholder="Describe el motivo de tu reporte (mín. 10, máx. 255 caracteres)"></textarea>
             </div>
           </div>
           <div class="modal-footer">
@@ -177,12 +203,25 @@
           </div>
           <form method="post" action="{% url 'inquiries:report_user' comment.author.pk %}">
             {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
             <div class="modal-body">
               <p>¿Estás seguro de reportar a este usuario?</p>
               <p><strong>{{ comment.author.get_full_name|default:comment.author.username }}</strong></p>
+              
+              <div class="mb-3">
+                <label for="reportCommentUser{{ comment.id }}Type" class="form-label">Tipo de reporte:</label>
+                <select class="form-select" id="reportCommentUser{{ comment.id }}Type" name="report_type" required>
+                  <option value="FRAUD">Fraude</option>
+                  <option value="HARASSMENT">Acoso</option>
+                  <option value="INAPPROPRIATE_LANGUAGE">Lenguaje inapropiado</option>
+                  <option value="MISLEADING_CONTENT">Contenido engañoso</option>
+                  <option value="OTHER" selected>Otro</option>
+                </select>
+              </div>
+              
               <div class="mb-3">
                 <label for="reportCommentUser{{ comment.id }}Reason" class="form-label">Motivo del reporte:</label>
-                <textarea class="form-control" id="reportCommentUser{{ comment.id }}Reason" name="reason" rows="4" maxlength="255" required placeholder="Describe el motivo de tu reporte (10-255 caracteres)"></textarea>
+                <textarea class="form-control" id="reportCommentUser{{ comment.id }}Reason" name="reason" rows="4" minlength="10" maxlength="255" required placeholder="Describe el motivo de tu reporte (mín. 10, máx. 255 caracteres)"></textarea>
               </div>
             </div>
             <div class="modal-footer">
@@ -198,3 +237,21 @@
 {% endfor %}
 
 {% endblock %}
+
+<script>
+// Limpiar formularios cuando se cierran los modales
+document.addEventListener('DOMContentLoaded', function() {
+    // Obtener todos los modales
+    var modals = document.querySelectorAll('.modal');
+    
+    modals.forEach(function(modal) {
+        modal.addEventListener('hidden.bs.modal', function() {
+            // Limpiar todos los formularios dentro del modal
+            var forms = modal.querySelectorAll('form');
+            forms.forEach(function(form) {
+                form.reset();
+            });
+        });
+    });
+});
+</script>

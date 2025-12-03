@@ -138,18 +138,74 @@ class ReportService:
         
         elif target_type == 'LISTING':
             # Only students can report listings
-            if reporter.user_type != 'STUDENT':
+            try:
+                student_profile = reporter.student_profile
+                if student_profile is None:
+                    raise ValidationError(
+                        "Solo los estudiantes pueden reportar publicaciones"
+                    )
+            except AttributeError:
                 raise ValidationError(
                     "Solo los estudiantes pueden reportar publicaciones"
                 )
             
             # Cannot report your own listing (if reporter is landlord)
-            if hasattr(reporter, 'landlord') and target_obj.landlord == reporter.landlord:
-                raise ValidationError("No puedes reportar tu propia publicación")
+            try:
+                landlord_profile = reporter.landlord_profile
+                if landlord_profile and target_obj.landlord == landlord_profile:
+                    raise ValidationError("No puedes reportar tu propia publicación")
+            except AttributeError:
+                pass  # Reporter is not a landlord, which is fine
     
     @classmethod
     @transaction.atomic
-    def create_report(cls, reporter, reason, target_type, target_id):
+    def create_user_report(cls, *, reporter, reported_user, reason, report_type='OTHER'):
+        """
+        Create a report against a user (convenience method).
+        
+        Args:
+            reporter (User): User creating the report
+            reported_user (User): User being reported
+            reason (str): Reason for the report
+            report_type (str): Type of report (FRAUD, HARASSMENT, etc.)
+            
+        Returns:
+            Report: The created report instance
+        """
+        return cls.create_report(
+            reporter=reporter,
+            reason=reason,
+            target_type='USER',
+            target_id=reported_user.id,
+            report_type=report_type
+        )
+    
+    @classmethod
+    @transaction.atomic
+    def create_listing_report(cls, *, reporter, listing, reason, report_type='OTHER'):
+        """
+        Create a report against a listing (convenience method).
+        
+        Args:
+            reporter (User): User creating the report
+            listing (Listing): Listing being reported
+            reason (str): Reason for the report
+            report_type (str): Type of report (FRAUD, HARASSMENT, etc.)
+            
+        Returns:
+            Report: The created report instance
+        """
+        return cls.create_report(
+            reporter=reporter,
+            reason=reason,
+            target_type='LISTING',
+            target_id=listing.id,
+            report_type=report_type
+        )
+    
+    @classmethod
+    @transaction.atomic
+    def create_report(cls, reporter, reason, target_type, target_id, report_type='OTHER'):
         """
         Create a report with full validation and transaction safety.
         
@@ -165,6 +221,7 @@ class ReportService:
             reason (str): Reason for the report (max 255 chars)
             target_type (str): 'USER' or 'LISTING'
             target_id (int): ID of the reported user or listing
+            report_type (str): Type of report (FRAUD, HARASSMENT, INAPPROPRIATE_LANGUAGE, etc.)
             
         Returns:
             Report: The created report instance
@@ -177,7 +234,8 @@ class ReportService:
                 reporter=request.user,
                 reason="Contenido fraudulento en la publicación",
                 target_type='LISTING',
-                target_id=123
+                target_id=123,
+                report_type='FRAUD'
             )
         """
         # Normalize target_type
@@ -218,10 +276,17 @@ class ReportService:
         # Validate business rules
         cls._validate_business_rules(reporter, target_type, target_obj)
         
+        # Normalize and validate report_type
+        report_type = (report_type or 'OTHER').upper()
+        valid_types = ['FRAUD', 'HARASSMENT', 'INAPPROPRIATE_LANGUAGE', 'MISLEADING_CONTENT', 'OTHER']
+        if report_type not in valid_types:
+            report_type = 'OTHER'  # Default to OTHER if invalid
+        
         # Create the report (atomic transaction)
         report = Report.objects.create(
             reporter=reporter,
-            reason=reason
+            reason=reason,
+            report_type=report_type
         )
         
         # Create the specific report type (XOR: User OR Listing)

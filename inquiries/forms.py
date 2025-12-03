@@ -13,20 +13,26 @@ class ReportForm(forms.ModelForm):
     
     class Meta:
         model = Report
-        fields = ['reason']
+        fields = ['report_type', 'reason']
         widgets = {
+            'report_type': forms.Select(attrs={
+                'class': 'form-control',
+                'id': 'report-type-field'
+            }),
             'reason': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
                 'maxlength': 255,
-                'placeholder': 'Describe el motivo de tu reporte (máx. 255 caracteres)',
+                'placeholder': 'Describe el motivo de tu reporte (mín. 10, máx. 255 caracteres)',
                 'id': 'report-reason-field'
             }),
         }
         labels = {
+            'report_type': 'Tipo de reporte',
             'reason': 'Motivo del reporte',
         }
         help_texts = {
+            'report_type': 'Selecciona el tipo de conducta que estás reportando.',
             'reason': 'Explica claramente por qué estás reportando. Sé específico.',
         }
     
@@ -94,7 +100,7 @@ class ReportForm(forms.ModelForm):
                 raise ValidationError('La publicación reportada no existe')
             
             # Business rule: only students can report listings
-            if self.reporter.user_type != 'STUDENT':
+            if not hasattr(self.reporter, 'student'):
                 raise ValidationError('Solo los estudiantes pueden reportar publicaciones')
             
             # Business rule: cannot report your own listing

@@ -9,7 +9,12 @@ class StudentRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     """
     def test_func(self):
         user = self.request.user
-        return hasattr(user, 'student_profile') and user.is_active
+        if not user.is_active:
+            return False
+        try:
+            return user.student_profile is not None
+        except AttributeError:
+            return False
 
     def handle_no_permission(self):
         if not self.request.user.is_authenticated:
@@ -27,7 +32,15 @@ class CanReportMixin(LoginRequiredMixin, UserPassesTestMixin):
         if not user.is_active:
             return False
         # Students and landlords can report
-        return hasattr(user, 'student_profile') or hasattr(user, 'landlord_profile')
+        try:
+            return user.student_profile is not None
+        except AttributeError:
+            pass
+        try:
+            return user.landlord_profile is not None
+        except AttributeError:
+            pass
+        return False
 
     def handle_no_permission(self):
         if not self.request.user.is_authenticated:

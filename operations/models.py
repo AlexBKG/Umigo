@@ -12,7 +12,7 @@ class Admin(models.Model):
 
     class Meta:
         db_table = 'admin'
-        managed = False
+        managed = True  # Changed for SQLite development
 
     def __str__(self):
         return f"Admin #{self.id}"
