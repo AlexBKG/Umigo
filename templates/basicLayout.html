@@ -1,52 +1,104 @@
+
 <!DOCTYPE html>
 {% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <title>
         {% block title %}
             Umigo
         {% endblock %}
     </title>
-    <link rel="stylesheet" href="{% static 'css/homestyle.css' %}">
 </head>
 <body>
     <header>
-        <nav>           
-            {% if user.is_authenticated %}
-                {% load userTags %}
+        <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+            <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="{% static 'css/IconoUmigo.png' %}" alt="Umi★Go" height="65px">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-                {% if request.user|inGroup:"Students" %}
-                    <a href="{% url 'listings:listing_public_list' %}">Browse Listings</a> |
-                {% endif %}
 
-                {% if request.user|inGroup:"Landlords" %}
-                    <a href="{% url 'listings:landlord_listing_list' %}">My listings</a> |
-                {% endif %}
+             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    
 
-                <form action="{% url 'users:logout' %}" method="post">
-                    {% csrf_token %}
-                    <button>Cerrar sesión</button>
-                </form>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#alianzas">Alianzas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contacto">Contacto</a>
+                    </li>
+                    
+                    {% if user.is_authenticated %}
+                        {% load userTags %}
 
-                {% if request.user|inGroup:"Students" %}
-                    <form action="{% url 'users:deactivateAccount' %}" method="post">
-                        {% csrf_token %}
-                        <button>Desactivar cuenta</button>
-                    </form>
-                {% endif %}
+                        {% if request.user|inGroup:"Students" %}
+                            <li class="nav-item">
+                                <a class="nav-link"  href="{% url 'listings:listing_public_list' %}">Arrendamientos</a>
+                            </li>
+                        {% endif %}
 
-                <form action="{% url 'users:deleteAccount' %}" method="post">
-                    {% csrf_token %}
-                    <button>Eliminar cuenta</button>
-                </form>
+                        {% if request.user|inGroup:"Landlords" %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'listings:landlord_listing_list' %}">My listings</a>
+                            </li>
+                        {% endif %}
+                </ul>
+            </div>
+            
+
+            <div class="dropdown">
+    
+                <button class="btn btn-secondary dropdown-toggle" 
+                        type="button" 
+                        data-bs-toggle="dropdown" 
+                        aria-expanded="false">
+                    Opciones del Usuario
+                </button>
+
+                <ul class="dropdown-menu">
+                    {% if request.user|inGroup:"Students" %}
+                    <li>
+                        <form  action="{% url 'users:deactivateAccount' %}" method="post">
+                            {% csrf_token %}
+                            <button class="dropdown-item">Desactivar cuenta</button>
+                        </form>
+                    </li>
+                    {% endif %}
+                    <li>
+                        <form action="{% url 'users:deleteAccount' %}" method="post">
+                            {% csrf_token %}
+                            <button class="dropdown-item">Eliminar cuenta</button>
+                        </form>
+                    </li>
+                    <li>
+                        <form action="{% url 'users:logout' %}" method="post">
+                            {% csrf_token %}
+                            <button class="dropdown-item">Cerrar sesión</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+
             {% else %}
-                <a href="{% url 'users:login' %}">Iniciar sesión</a>
+
+            <li class="nav-item ms-3">
+                <a class="btn btn-login" href="{% url 'users:login' %}">
+                    <i class="bi bi-person-circle"></i> Iniciar sesión
+                </a>
+            </li>
             {% endif %}
 
-            Viviendas | Alianzas | Contacto
-            <a href="/">Volver al inicio</a> |
+
         </nav>
     </header>
     <hr>
@@ -54,5 +106,6 @@
         {% block precontent %}
         {% endblock %}
     </main>
+
 </body>
 </html>

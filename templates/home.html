@@ -1,5 +1,86 @@
 {% extends 'basicLayout.html' %}
 
 {% block precontent %}
-    
+<!DOCTYPE html>
+{% load static %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umi★Go</title>
+
+</head>
+<body>
+    <!-- Navbar -->
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="hero-title">Tu hogar universitario en Bogotá<br>¡Fácil, seguro y con ambiente <span style="color: var(--primary-orange);">Umi★Go</span></h1>
+                    <p class="lead mb-4">Residencias diseñadas para que solo te preocupes por estudiar. Cerca de tu universidad, con todo incluido y la seguridad que papá y mamá necesitan.</p>
+                    <button class="btn btn-orange">Ver opciones disponibles</button>
+                    <span class="reserve-badge">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <strong>Reserva 100% Online</strong>
+                    </span>
+                </div>
+                <div class="col-lg-6">
+                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600" alt="Estudiante" class="img-fluid rounded">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us -->
+    <section class="why-section">
+        <div class="container">
+            <h2 class="text-center mb-5">¿Por qué <span style="color: var(--primary-orange);">elegirnos</span>?</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="bi bi-shield-check feature-icon"></i>
+                        <h4>Seguridad total</h4>
+                        <p>Acceso controlado, vigilancia 24/7 y monitoreo constante. Su tranquilidad es nuestra prioridad.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card dark">
+                        <i class="bi bi-house-heart feature-icon"></i>
+                        <h4>Todo Incluido</h4>
+                        <p>Arriendo, servicios públicos, Wi-Fi de alta velocidad, aseo y lavandería. ¡Todo en una sola factura, cero sorpresas!</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="bi bi-mortarboard feature-icon"></i>
+                        <h4>Cerca de tu U</h4>
+                        <p>Ubicaciones estratégicas cerca de las principales universidades de Bogotá. Ahorra tiempo y dinero en transporte.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-center">
+                    <img src="{% static 'css/mascota.png' %}" alt="Umi★Go" height="350" style="margin-top: -150px; margin-left: 300px;"> 
+                    
+                </div>
+                <div class="col-md-6" style="margin-top: -40px;">
+                    <h3 class="mb-4">¿Buscas un hogar en Bogotá?</h3>
+                    <p>Síguenos en nuestras redes sociales<br>y conoce todas nuestras ofertas</p>
+                    <div class="social-links mt-4">
+                        <a href="#"><i class="bi bi-tiktok"></i> @Umigo_Oficial</a>
+                        <a href="#"><i class="bi bi-instagram"></i> @Umigo_Oficial</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
 {% endblock %}
