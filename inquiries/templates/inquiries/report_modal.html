@@ -1,0 +1,111 @@
+<!-- Report Modal - Bootstrap popup -->
+<!-- Include this in pages where report functionality is needed -->
+
+<!-- Modal for reporting users -->
+<div class="modal fade" id="reportUserModal{{ user_id }}" tabindex="-1" aria-labelledby="reportUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportUserModalLabel">Reportar Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'inquiries:report_user' user_id %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    
+                    <p><strong>Usuario a reportar:</strong> {{ reported_username }}</p>
+                    
+                    <div class="mb-3">
+                        <label for="reasonUser{{ user_id }}" class="form-label">Motivo del reporte:</label>
+                        <textarea 
+                            class="form-control" 
+                            id="reasonUser{{ user_id }}"
+                            name="reason" 
+                            rows="5" 
+                            maxlength="255"
+                            placeholder="Describe claramente por qué estás reportando (mínimo 10 caracteres)"
+                            required></textarea>
+                        <small class="form-text text-muted">Máximo 255 caracteres</small>
+                    </div>
+                    
+                    <div class="alert alert-warning" role="alert">
+                        <small>
+                            <strong>Advertencia:</strong> Los reportes falsos pueden resultar en sanciones.
+                            Solo reporta contenido que viole nuestras políticas de uso.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Enviar Reporte</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for reporting listings -->
+<div class="modal fade" id="reportListingModal{{ listing_id }}" tabindex="-1" aria-labelledby="reportListingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportListingModalLabel">Reportar Publicación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'inquiries:report_listing' listing_id %}">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    
+                    <p><strong>Publicación a reportar:</strong> {{ reported_listing_title }}</p>
+                    
+                    <div class="mb-3">
+                        <label for="reasonListing{{ listing_id }}" class="form-label">Motivo del reporte:</label>
+                        <textarea 
+                            class="form-control" 
+                            id="reasonListing{{ listing_id }}"
+                            name="reason" 
+                            rows="5" 
+                            maxlength="255"
+                            placeholder="Describe claramente por qué estás reportando (mínimo 10 caracteres)"
+                            required></textarea>
+                        <small class="form-text text-muted">Máximo 255 caracteres</small>
+                    </div>
+                    
+                    <div class="alert alert-warning" role="alert">
+                        <small>
+                            <strong>Advertencia:</strong> Los reportes falsos pueden resultar en sanciones.
+                            Solo reporta contenido que viole nuestras políticas de uso.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Enviar Reporte</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 
+Usage Instructions:
+===================
+
+1. Include this template in your page (e.g., listing detail or user profile):
+   {% include 'inquiries/report_modal.html' with user_id=user.id reported_username=user.username %}
+   {% include 'inquiries/report_modal.html' with listing_id=listing.id reported_listing_title=listing.location_text %}
+
+2. Add a button to trigger the modal:
+   
+   For reporting a user:
+   <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#reportUserModal{{ user.id }}">
+       Reportar Usuario
+   </button>
+   
+   For reporting a listing:
+   <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#reportListingModal{{ listing.id }}">
+       Reportar Publicación
+   </button>
+
+3. Make sure Bootstrap 5 CSS and JS are loaded in your base template.
+-->
