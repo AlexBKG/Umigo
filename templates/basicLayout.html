@@ -18,11 +18,11 @@
                 {% load userTags %}
 
                 {% if request.user|inGroup:"Students" %}
-                    <a href="{% url 'listings:listing_public_list' %}">Browse Listings</a> |
+                    <a href="{% url 'listings:listing_public_list' %}">Buscar arriendos</a> |
                 {% endif %}
 
                 {% if request.user|inGroup:"Landlords" %}
-                    <a href="{% url 'listings:landlord_listing_list' %}">My listings</a> |
+                    <a href="{% url 'listings:landlord_listing_list' %}">Mis arriendos</a> |
                 {% endif %}
 
                 <form action="{% url 'users:logout' %}" method="post">

@@ -1,28 +1,45 @@
 {% extends "authenticatedLayout.html" %}
 
-{% block title %}{{ view.object|default:"Create listing" }}{% endblock %}
+{% block title %}{{ view.object|default:"Crear arriendo" }}{% endblock %}
 
 {% block content %}
 
 {% load userTags %}
 {% if request.user|inGroup:"Landlords" %}              
                 
-    <h2>{% if view.object %}Edit listing{% else %}Create listing{% endif %}</h2>
+    <h2>{% if view.object %}Editar arriendo{% else %}Crear arriendo{% endif %}</h2>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        {% if form.errors %}
+            <div style="color: red;">
+                {{ form.errors }}
+            </div>
+        {% endif %}
         {{ form.as_p }}
 
-        <h3>Location helper</h3>
         <p>
-            <label for="id_location_search">Search address or place:</label>
+            <label for="id_images">Fotos del arriendo (1 a 5):</label>
+            <input
+                type="file"
+                id="id_images"
+                name="images"
+                multiple
+                accept="image/*">
+            <br>
+            <small>Puedes seleccionar varias imágenes manteniendo presionada la tecla Ctrl (o Cmd en Mac).</small>
+        </p>
+
+        <h3>Asistente de ubicación dinámico</h3>
+        <p>
+            <label for="id_location_search">Buscar dirección o lugar:</label>
             <input type="text" id="id_location_search" style="width: 300px;">
-            <button type="button" id="id_location_search_btn">Search</button>
+            <button type="button" id="id_location_search_btn">Buscar</button>
         </p>
 
         <div id="map" style="height: 400px; max-width: 600px; border: 1px solid #ccc;"></div>
 
-        <button type="submit">Save</button>
+        <button type="submit">Guardar</button>
     </form>
 
     {# Leaflet CSS/JS #}

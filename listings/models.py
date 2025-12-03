@@ -40,14 +40,8 @@ class Listing(models.Model):
         return f"{self.location_text} ({self.price})"
 
 class ListingPhoto(models.Model):
-    listing = models.ForeignKey(
-        Listing,
-        on_delete=models.CASCADE,
-        related_name='photos'
-    )
-    url = models.URLField(max_length=300)
-    mime_type = models.CharField(max_length=50)
-    size_bytes = models.BigIntegerField()
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='photos')
+    image = models.ImageField(upload_to='listing_photos/')
     sort_order = models.SmallIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 

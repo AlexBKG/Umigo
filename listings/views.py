@@ -10,7 +10,7 @@ from django.conf import settings
 from django.http import HttpResponseForbidden
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from .models import Listing, Comment
+from .models import Listing, ListingPhoto, Comment
 from .forms import ListingForm, CommentForm
 from .mixins import LandlordRequiredMixin
 from users.models import Landlord, Student
@@ -102,9 +102,22 @@ class ListingCreateView(LandlordRequiredMixin, CreateView):
     def form_valid(self, form):
         landlord = self.request.user.landlord_profile
         form.instance.owner = landlord
-        return super().form_valid(form)
+
+        # Primero guardamos el Listing
+        response = super().form_valid(form)
+
+        # Luego manejamos las fotos (hasta 5)
+        images = self.request.FILES.getlist('images')
+        for image in images[:5]:
+            ListingPhoto.objects.create(
+                listing=self.object,
+                image=image,
+            )
+
+        return response
 
     def get_success_url(self):
+        from django.urls import reverse_lazy
         return reverse_lazy('listings:landlord_listing_list')
 
 

@@ -7,38 +7,56 @@
 {% load userTags %}
 {% if request.user|inGroup:"Landlords" %}
 
-  <h2>My listings</h2>
-  <a href="{% url 'listings:listing_create' %}">Create new listing</a>
-  <table border="1" cellspacing="0" cellpadding="4">
+  <h2>Mis arriendos</h2>
+  <a href="{% url 'listings:listing_create' %}">Crear un nuevo arriendo</a>
+    <table border="1" cellspacing="0" cellpadding="4">
     <tr>
-      <th>Location</th>
-      <th>Price</th>
-      <th>Available</th>
-      <th>Views</th>
-      <th>Actions</th>
+        <th>Ubicación</th>
+        <th>Foto</th>
+        <th>Precio</th>
+        <th>Disponible</th>
+        <th>Vistas</th>
+        <th>Acciones</th>
     </tr>
+
     {% for l in object_list %}
     <tr>
-      <td>{{ l.location_text }}</td>
-      <td>{{ l.price }}</td>
-      <td>{{ l.available|yesno:"Yes,No" }}</td>
-      <td>{{ l.views }}</td>
-      <td>
-        <a href="{% url 'listings:listing_update' l.pk %}">Edit</a> |
-        <form action="{% url 'listings:listing_toggle' l.pk %}" method="post" style="display:inline">
-          {% csrf_token %}
-          <button type="submit">
-            {% if l.available %}Set unavailable{% else %}Set available{% endif %}
-          </button>
-        </form> |
-        <a href="{% url 'listings:listing_delete' l.pk %}">Delete</a>
-        <a href="{% url 'listings:listing_detail' l.pk %}">Ver detalles</a>
-      </td>
+        <td>{{ l.location_text }}</td>
+
+        <td>
+            {% with first_photo=l.photos.first %}
+                {% if first_photo %}
+                    <img src="{{ first_photo.image.url }}"
+                        style="max-width:90px; height:auto; border:1px solid #ccc;">
+                {% else %}
+                    <span style="color:#777;">Sin foto</span>
+                {% endif %}
+            {% endwith %}
+        </td>
+
+        <td>${{ l.price }}</td>
+        <td>{{ l.available|yesno:"Si,No" }}</td>
+        <td>{{ l.views }}</td>
+
+        <td>
+            <a href="{% url 'listings:listing_update' l.pk %}">Editar</a> |
+
+            <form action="{% url 'listings:listing_toggle' l.pk %}" method="post" style="display:inline">
+                {% csrf_token %}
+                <button type="submit">
+                    {% if l.available %}Establecer como no disponible{% else %}Establecer como disponible{% endif %}
+                </button>
+            </form>
+
+            <a href="{% url 'listings:listing_delete' l.pk %}">Eliminar</a> |
+            <a href="{% url 'listings:listing_detail' l.pk %}">Ver detalles</a>
+        </td>
     </tr>
     {% empty %}
-    <tr><td colspan="5">You have no listings yet.</td></tr>
+    <tr><td colspan="6">No tienes arriendos todavía.</td></tr>
     {% endfor %}
-  </table>
+    </table>
+
 {% endif %}
 
 {% endblock %}

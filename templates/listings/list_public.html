@@ -7,20 +7,35 @@
 {% load userTags %}
 {% if request.user|inGroup:"Students" %}
 
-<h2>Available listings</h2>
+<h2>Arriendos disponibles</h2>
 
 <ul>
-  {% for l in object_list %}
-    <li>
-      <a href="{% url 'listings:listing_detail' l.pk %}">
-        {{ l.location_text }} - ${{ l.price }}
-      </a>
-      (rooms: {{ l.rooms }}, bathrooms: {{ l.bathrooms }})
+{% for l in object_list %}
+    <li style="margin-bottom: 20px; display:flex; align-items:center; gap:15px;">
+
+        {% with first_photo=l.photos.first %}
+            {% if first_photo %}
+                <img src="{{ first_photo.image.url }}"
+                     alt="Foto de {{ l.location_text }}"
+                     style="max-width:120px; height:auto; border:1px solid #999;">
+            {% endif %}
+        {% endwith %}
+
+        <div>
+            <a href="{% url 'listings:listing_detail' l.pk %}">
+                {{ l.location_text }} – ${{ l.price }}
+            </a>
+
+            <br>
+            (Cuartos: {{ l.rooms }}, Baños: {{ l.bathrooms }})
+        </div>
+
     </li>
-  {% empty %}
-    <li>No listings yet.</li>
-  {% endfor %}
+{% empty %}
+    <li>No hay arriendos todavía.</li>
+{% endfor %}
 </ul>
+
 
 {% endif %}
 
