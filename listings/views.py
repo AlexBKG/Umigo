@@ -100,19 +100,27 @@ class ListingCreateView(LandlordRequiredMixin, CreateView):
     template_name = 'listings/form.html'
 
     def form_valid(self, form):
+        # Validamos aquí las imágenes
+        images = self.request.FILES.getlist('images')
+        min_photos = 1
+        max_photos = 5
+
+        if len(images) < min_photos:
+            form.add_error(None, 'Debes subir al menos una foto.')
+            return self.form_invalid(form)
+
+        if len(images) > max_photos:
+            form.add_error(None, f'Solo se permiten máximo {max_photos} fotos.')
+            return self.form_invalid(form)
+    
         landlord = self.request.user.landlord_profile
         form.instance.owner = landlord
 
         # Primero guardamos el Listing
         response = super().form_valid(form)
 
-        # Luego manejamos las fotos (hasta 5)
-        images = self.request.FILES.getlist('images')
-        for image in images[:5]:
-            ListingPhoto.objects.create(
-                listing=self.object,
-                image=image,
-            )
+        for img in images:
+            ListingPhoto.objects.create(listing=self.object, image=img)
 
         return response
 
@@ -125,6 +133,59 @@ class ListingUpdateView(LandlordRequiredMixin, UpdateView):
     model = Listing
     form_class = ListingForm
     template_name = 'listings/form.html'
+
+    def form_valid(self, form):
+        request = self.request
+        listing = self.object  # el que se está editando
+
+        # Fotos actuales del anuncio
+        current_photos_qs = listing.photos.all()
+        current_count = current_photos_qs.count()
+
+        # Fotos marcadas para eliminar
+        delete_ids = request.POST.getlist('delete_photos')  # lista de strings
+        to_delete_qs = current_photos_qs.filter(id__in=delete_ids)
+        delete_count = to_delete_qs.count()
+
+        # Nuevas fotos que se van a subir
+        new_images = request.FILES.getlist('images')
+        new_count = len(new_images)
+
+        # Reglas de negocio
+        min_photos = 1
+        max_photos = 5
+
+        remaining_after_delete = current_count - delete_count
+        total_after = remaining_after_delete + new_count
+
+        if total_after < min_photos:
+            form.add_error(
+                None,
+                'El anuncio debe tener al menos una foto. '
+                'Sube una nueva imagen o desmarca alguna que quieras eliminar.'
+            )
+            return self.form_invalid(form)
+
+        if total_after > max_photos:
+            form.add_error(
+                None,
+                f'El anuncio no puede tener más de {max_photos} fotos en total. '
+                f'Actualmente quedarán {total_after}.'
+            )
+            return self.form_invalid(form)
+
+        # Hasta aquí las reglas se cumplen: aplicamos cambios
+        # 1) Guardamos cambios básicos del Listing
+        response = super().form_valid(form)
+
+        # 2) Eliminamos las fotos marcadas
+        to_delete_qs.delete()
+
+        # 3) Creamos las nuevas fotos
+        for img in new_images:
+            ListingPhoto.objects.create(listing=self.object, image=img)
+
+        return response
 
     def get_queryset(self):
         landlord = self.request.user.landlord_profile
