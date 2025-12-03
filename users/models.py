@@ -5,9 +5,6 @@ from django.core.mail import EmailMessage
 
 from .validators import UsernameValidator
 
-class Report(models.Model):
-    pass
-
 class User(AbstractUser):
     username_validator = UsernameValidator()
 

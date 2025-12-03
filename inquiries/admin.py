@@ -11,6 +11,15 @@ class ReportAdmin(ModelAdmin):
     """
     Admin interface for managing reports with bulk actions and filters.
     Provides actions to accept or reject reports in bulk.
+    
+    AUTO-MODERATION (triggers automatically when accepting reports against users):
+        - 1st ACCEPTED report → User suspended for 30 days (suspension_end_at = today + 30 days)
+        - 2+ ACCEPTED reports → User account deleted
+        
+    IMPORTANT: users_user.suspension_end_at is DATE field (not DATETIME)
+    Database schema: suspension_end_at DATE NULL
+    
+    Note: Moderation is handled by Report.save() in models.py
     """
     list_display = ('id', 'reporter_link', 'target_display', 'reason_short', 'status', 'created_at', 'reviewed_by_link')
     list_filter = ('status', 'created_at', 'updated_at')

@@ -1,6 +1,17 @@
 """
 Service layer for report creation with business logic.
 Provides transaction-safe report creation with deduplication and validation.
+
+AUTO-MODERATION POLICY (Applied in Report.save() when status changes to ACCEPTED):
+    - 1st ACCEPTED report against user → Suspension for 30 days (is_active=False)
+    - 2+ ACCEPTED reports against user → Account deletion (User.delete())
+    
+IMPORTANT DATABASE SCHEMA:
+    users_user.suspension_end_at is DATE (not DATETIME)
+    Correct assignment: timezone.now().date() + timedelta(days=30)
+    
+Note: Auto-moderation logic is in inquiries/models.py Report._apply_user_moderation_on_accept()
+This service only handles report creation and validation.
 """
 from datetime import timedelta
 from django.db import transaction
@@ -15,6 +26,13 @@ class ReportService:
     """
     Service class for handling report creation and validation.
     Implements business rules including 24h cooldown period per target.
+    
+    Business Rules:
+        - Students and Landlords can report users
+        - Only Students can report listings
+        - Cannot report yourself
+        - Cannot report admins (staff/superuser)
+        - 24h cooldown per target (prevents spam)
     """
     
     # Cooldown period (24 hours)
