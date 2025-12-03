@@ -17,8 +17,8 @@
             {% if user.is_authenticated %}
                 {% load userTags %}
 
-                {% if request.user|inGroup:"Students" %}
-                    <a href="{% url 'listings:listing_public_list' %}">Browse Listings</a> |
+                {% if request.user|inGroup:"Students" or request.user.is_superuser%}
+                    <a href="{% url 'listings:listing_public_list' %}">Explorar publicaciones</a> |
                 {% endif %}
 
                 {% if request.user|inGroup:"Landlords" %}
