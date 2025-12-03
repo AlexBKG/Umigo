@@ -1,13 +1,13 @@
 {% extends "authenticatedLayout.html" %}
 
-{% block title %}{{ view.object|default:"Create listing" }}{% endblock %}
+{% block title %}{{ view.object|default:"Crear publicación" }}{% endblock %}
 
 {% block content %}
 
 {% load userTags %}
 {% if request.user|inGroup:"Landlords" %}              
                 
-    <h2>{% if view.object %}Edit listing{% else %}Create listing{% endif %}</h2>
+    <h2>{% if view.object %}Editar publicación{% else %}Crear publicación{% endif %}</h2>
 
     <form method="post">
         {% csrf_token %}
@@ -15,14 +15,14 @@
 
         <h3>Location helper</h3>
         <p>
-            <label for="id_location_search">Search address or place:</label>
+            <label for="id_location_search">Buscar dirección o lugar:</label>
             <input type="text" id="id_location_search" style="width: 300px;">
-            <button type="button" id="id_location_search_btn">Search</button>
+            <button type="button" id="id_location_search_btn">Buscar</button>
         </p>
 
         <div id="map" style="height: 400px; max-width: 600px; border: 1px solid #ccc;"></div>
 
-        <button type="submit">Save</button>
+        <button type="submit">Guardar</button>
     </form>
 
     {# Leaflet CSS/JS #}

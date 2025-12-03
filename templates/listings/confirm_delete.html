@@ -1,13 +1,13 @@
 {% extends "authenticatedLayout.html" %}
 
-{% block title %}Delete listing{% endblock %}
+{% block title %}Eliminar arriendo{% endblock %}
 
 {% block content %}
-<h2>Delete listing</h2>
-<p>Are you sure you want to delete "{{ object.location_text }}"?</p>
+<h2>Eliminar arriendo</h2>
+<p>¿Estás seguro que quieres eliminar "{{ object.location_text }}"?</p>
 <form method="post">
   {% csrf_token %}
-  <button type="submit">Yes, delete</button>
-  <a href="{% url 'listings:landlord_listing_list' %}">Cancel</a>
+  <button type="submit">Sí, eliminar</button>
+  <a href="{% url 'listings:landlord_listing_list' %}">Cancelar</a>
 </form>
 {% endblock %}
