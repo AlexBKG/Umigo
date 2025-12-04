@@ -44,17 +44,8 @@ class ReportAdmin(ModelAdmin):
     )
     
     def report_type_display(self, obj):
-        """Display report type with icon."""
-        icons = {
-            'FRAUD': '💰',
-            'HARASSMENT': '⚠️',
-            'INAPPROPRIATE_LANGUAGE': '🗣️',
-            'MISLEADING_CONTENT': '❌',
-            'OTHER': '📝',
-        }
-        icon = icons.get(obj.report_type, '📝')
-        label = obj.get_report_type_display()
-        return format_html('{} {}', icon, label)
+        """Display report type."""
+        return obj.get_report_type_display()
     report_type_display.short_description = 'Tipo'
 
     def reporter_link(self, obj):
@@ -133,7 +124,7 @@ class ReportAdmin(ModelAdmin):
                 count += 1
         self.message_user(request, f'{count} report(s) accepted successfully.')
 
-    @admin.action(description='❌ Reject selected reports')
+    @admin.action(description='Reject selected reports')
     def reject_reports(self, request, queryset):
         """Bulk action to reject reports."""
         with transaction.atomic():
@@ -147,12 +138,43 @@ class ReportAdmin(ModelAdmin):
 
 @admin.register(UserReport)
 class UserReportAdmin(ModelAdmin):
-    """Admin interface for UserReport with links to related objects."""
-    list_display = ('report', 'reported_user_link', 'created_at')
-    readonly_fields = ('report', 'reported_user')
-    search_fields = ('reported_user__username', 'report__reason')
+    """
+    Admin interface for UserReport with links to related objects.
+    Para editar STATUS y REVIEWED_BY, usa el link 'Edit Report' o ve a Reports directamente.
+    """
+    list_display = ('report_id', 'reporter_name', 'reported_user_link', 'report_type', 'status_display', 'created_at')
+    list_filter = ('report__status', 'report__report_type', 'report__created_at')
+    readonly_fields = ('report', 'reported_user', 'report_details')
+    search_fields = ('reported_user__username', 'report__reason', 'report__reporter__username')
+    
+    def report_id(self, obj):
+        """Display report ID number."""
+        return obj.report.id if obj.report else '-'
+    report_id.short_description = 'ID'
+    
+    def reporter_name(self, obj):
+        """Display reporter username."""
+        if obj.report and obj.report.reporter:
+            return obj.report.reporter.username
+        return '-'
+    reporter_name.short_description = 'Reporter'
+    
+    def report_type(self, obj):
+        """Display report type."""
+        if obj.report:
+            return obj.report.get_report_type_display()
+        return '-'
+    report_type.short_description = 'Type'
+    
+    def status_display(self, obj):
+        """Display status."""
+        if obj.report:
+            return obj.report.get_status_display()
+        return '-'
+    status_display.short_description = 'Status'
 
     def reported_user_link(self, obj):
+        """Link to reported user's admin page."""
         if obj.reported_user:
             url = reverse('admin:users_user_change', args=[obj.reported_user.pk])
             return format_html('<a href="{}">{}</a>', url, obj.reported_user.username)
@@ -160,24 +182,109 @@ class UserReportAdmin(ModelAdmin):
     reported_user_link.short_description = 'Reported User'
 
     def created_at(self, obj):
+        """Display creation timestamp."""
         return obj.report.created_at if obj.report else '-'
     created_at.short_description = 'Created At'
+    
+    def report_details(self, obj):
+        """Display full report details in readonly view."""
+        if not obj.report:
+            return '-'
+        
+        r = obj.report
+        
+        html = f"""
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #007bff;">
+            <h3 style="margin-top: 0;">Report #{r.id} - {r.get_report_type_display()}</h3>
+            <p><strong>Reason:</strong> {r.reason}</p>
+            <p><strong>Status:</strong> {r.get_status_display()}</p>
+            <p><strong>Reporter:</strong> {r.reporter.username if r.reporter else '-'}</p>
+            <p><strong>Created:</strong> {r.created_at.strftime('%Y-%m-%d %H:%M')}</p>
+            <p><strong>Reviewed by:</strong> {r.reviewed_by if r.reviewed_by else 'Not yet reviewed'}</p>
+            <hr>
+            <a href="{reverse('admin:inquiries_report_change', args=[r.pk])}" 
+               style="display: inline-block; padding: 8px 16px; background: #007bff; color: white; 
+                      text-decoration: none; border-radius: 4px; font-weight: bold;">
+                Edit This Report (Change Status/Reviewer)
+            </a>
+        </div>
+        """
+        return format_html(html)
+    report_details.short_description = 'Report Details'
 
 
 @admin.register(ListingReport)
 class ListingReportAdmin(ModelAdmin):
-    """Admin interface for ListingReport with links to related objects."""
-    list_display = ('report', 'listing_link', 'created_at')
-    readonly_fields = ('report', 'listing')
-    search_fields = ('listing__location_text', 'report__reason')
+    """
+    Admin interface for ListingReport with links to related objects.
+    Para editar STATUS y REVIEWED_BY, usa el link 'Edit Report' o ve a Reports directamente.
+    """
+    list_display = ('report_id', 'reporter_name', 'listing_link', 'report_type', 'status_display', 'created_at')
+    list_filter = ('report__status', 'report__report_type', 'report__created_at')
+    readonly_fields = ('report', 'listing', 'report_details')
+    search_fields = ('listing__location_text', 'report__reason', 'report__reporter__username')
+    
+    def report_id(self, obj):
+        """Display report ID number."""
+        return obj.report.id if obj.report else '-'
+    report_id.short_description = 'ID'
+    
+    def reporter_name(self, obj):
+        """Display reporter username."""
+        if obj.report and obj.report.reporter:
+            return obj.report.reporter.username
+        return '-'
+    reporter_name.short_description = 'Reporter'
+    
+    def report_type(self, obj):
+        """Display report type."""
+        if obj.report:
+            return obj.report.get_report_type_display()
+        return '-'
+    report_type.short_description = 'Type'
+    
+    def listing_link(self, obj):
+        """Display status."""
+        if obj.report:
+            return obj.report.get_status_display()
+        return '-'
+    status_display.short_description = 'Status'
 
     def listing_link(self, obj):
+        """Link to reported listing's admin page."""
         if obj.listing:
             url = reverse('admin:listings_listing_change', args=[obj.listing.pk])
             return format_html('<a href="{}">{}</a>', url, obj.listing.location_text)
         return '-'
-    listing_link.short_description = 'Listing'
+    listing_link.short_description = 'Reported Listing'
 
     def created_at(self, obj):
+        """Display creation timestamp."""
         return obj.report.created_at if obj.report else '-'
     created_at.short_description = 'Created At'
+    
+    def report_details(self, obj):
+        """Display full report details in readonly view."""
+        if not obj.report:
+            return '-'
+        
+        r = obj.report
+        
+        html = f"""
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745;">
+            <h3 style="margin-top: 0;">Report #{r.id} - {r.get_report_type_display()}</h3>
+            <p><strong>Reason:</strong> {r.reason}</p>
+            <p><strong>Status:</strong> {r.get_status_display()}</p>
+            <p><strong>Reporter:</strong> {r.reporter.username if r.reporter else '-'}</p>
+            <p><strong>Created:</strong> {r.created_at.strftime('%Y-%m-%d %H:%M')}</p>
+            <p><strong>Reviewed by:</strong> {r.reviewed_by if r.reviewed_by else 'Not yet reviewed'}</p>
+            <hr>
+            <a href="{reverse('admin:inquiries_report_change', args=[r.pk])}" 
+               style="display: inline-block; padding: 8px 16px; background: #28a745; color: white; 
+                      text-decoration: none; border-radius: 4px; font-weight: bold;">
+                Edit This Report (Change Status/Reviewer)
+            </a>
+        </div>
+        """
+        return format_html(html)
+    report_details.short_description = 'Report Details'
