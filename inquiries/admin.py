@@ -243,7 +243,7 @@ class ListingReportAdmin(ModelAdmin):
         return '-'
     report_type.short_description = 'Type'
     
-    def listing_link(self, obj):
+    def status_display(self, obj):
         """Display status."""
         if obj.report:
             return obj.report.get_status_display()
