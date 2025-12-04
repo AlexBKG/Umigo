@@ -1,5 +1,7 @@
 from django.db import models
 from users.models import Landlord, Student
+from django.db.models import Avg
+from django.conf import settings  # al inicio del archivo, si aún no está
 
 class Zone(models.Model):
     name = models.CharField(max_length=120)
@@ -35,18 +37,17 @@ class Listing(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def notifyAvailabilityToStudents(self, domain):
+        favoritedStudents = self.favorited_by.all()
+        for student in favoritedStudents:
+            student.receiveAvailabilityNotification(domain, self)
+    
     def __str__(self):
         return f"{self.location_text} ({self.price})"
 
 class ListingPhoto(models.Model):
-    listing = models.ForeignKey(
-        Listing,
-        on_delete=models.CASCADE,
-        related_name='photos'
-    )
-    url = models.URLField(max_length=300)
-    mime_type = models.CharField(max_length=50)
-    size_bytes = models.BigIntegerField()
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='photos')
+    image = models.ImageField(upload_to='listing_photos/')
     sort_order = models.SmallIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -55,3 +56,53 @@ class ListingPhoto(models.Model):
 
     def __str__(self):
         return f"Photo {self.id} for listing {self.listing_id}"
+    
+
+class Comment(models.Model):
+    listing = models.ForeignKey(
+        Listing,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    text = models.TextField(max_length=1000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Comment {self.id} on listing {self.listing_id}'
+    
+class Review(models.Model):
+    listing = models.ForeignKey(
+        Listing,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    author = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    text = models.TextField(max_length=1000)
+
+    class StarRating(models.IntegerChoices):
+        ONE_STAR = 1, "1 estrella"
+        TWO_STARS = 2, "2 estrellas"
+        THREE_STARS = 3, "3 estrellas"
+        FOUR_STARS = 4, "4 estrellas"
+        FIVE_STARS = 5, "5 estrellas"
+
+    rating = models.IntegerField(choices=StarRating)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Review {self.id} on listing {self.listing_id}'

@@ -1,7 +1,7 @@
 import re
 from django import forms
 from django.contrib.auth import password_validation
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm, SetPasswordForm
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm, SetPasswordForm, AuthenticationForm
 from django.utils.translation import gettext_lazy as _
 
 from .models import User, Student, Landlord
@@ -80,4 +80,13 @@ class PasswordForm(SetPasswordForm):
     error_messages = {
         **SetPasswordForm.error_messages,
         "password_mismatch": "Las contraseñas no coinciden.",  # your custom text
+    }
+
+class LoginForm(AuthenticationForm):
+    error_messages = {
+        "invalid_login": _(
+            "Por favor ingresa un nombre de usuario y contraseña correctos, asegúrate de que estén bien "
+            "escritos incluyendo mayúsculas."
+        ),
+        "inactive": _("Esta cuenta no se encuentra activa, revisa tu correo para activarla con el enlace que enviamos en tu proceso de registro."),
     }
