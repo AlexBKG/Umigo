@@ -4,6 +4,7 @@ from django.views.generic import FormView
 from django.urls import reverse_lazy
 from django.views.decorators.csrf import csrf_protect
 from django.utils.decorators import method_decorator
+from django.core.exceptions import ValidationError
 
 from .forms import ReportForm
 from .services import ReportService
@@ -47,6 +48,10 @@ class ReportUserFormView(CanReportMixin, FormView):
                 report_type=form.cleaned_data.get('report_type', 'OTHER')
             )
             messages.success(self.request, 'Tu reporte fue enviado para revisión.')
+        except ValidationError as e:
+            # Extract message without brackets from ValidationError
+            error_msg = e.messages[0] if hasattr(e, 'messages') and e.messages else str(e)
+            messages.error(self.request, error_msg)
         except Exception as e:
             messages.error(self.request, str(e))
         
@@ -101,6 +106,10 @@ class ReportListingFormView(StudentRequiredMixin, FormView):
                 report_type=form.cleaned_data.get('report_type', 'OTHER')
             )
             messages.success(self.request, 'Tu reporte sobre la publicación fue enviado.')
+        except ValidationError as e:
+            # Extract message without brackets from ValidationError
+            error_msg = e.messages[0] if hasattr(e, 'messages') and e.messages else str(e)
+            messages.error(self.request, error_msg)
         except Exception as e:
             messages.error(self.request, str(e))
         

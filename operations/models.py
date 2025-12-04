@@ -1,13 +1,21 @@
 from django.db import models
+from django.conf import settings
 
 
 class Admin(models.Model):
     """
     Administrador del sistema.
-    Tabla independiente sin relación directa con User.
-    Solo se relaciona con Report a través de reviewed_by.
+    Vinculado con User de Django para identificar quién revisó reportes.
     """
     id = models.BigAutoField(primary_key=True)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='admin_profile',
+        help_text='Usuario Django asociado a este administrador'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -15,4 +23,6 @@ class Admin(models.Model):
         managed = True  # Changed for SQLite development
 
     def __str__(self):
+        if self.user:
+            return f"Admin: {self.user.username}"
         return f"Admin #{self.id}"

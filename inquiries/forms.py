@@ -100,11 +100,13 @@ class ReportForm(forms.ModelForm):
                 raise ValidationError('La publicación reportada no existe')
             
             # Business rule: only students can report listings
-            if not hasattr(self.reporter, 'student'):
+            student_profile = getattr(self.reporter, 'student_profile', None)
+            if student_profile is None:
                 raise ValidationError('Solo los estudiantes pueden reportar publicaciones')
             
             # Business rule: cannot report your own listing
-            if hasattr(self.reporter, 'landlord') and target_listing.landlord == self.reporter.landlord:
+            landlord_profile = getattr(self.reporter, 'landlord_profile', None)
+            if landlord_profile and target_listing.landlord == landlord_profile:
                 raise ValidationError('No puedes reportar tu propia publicación')
         
         return cleaned_data

@@ -138,24 +138,16 @@ class ReportService:
         
         elif target_type == 'LISTING':
             # Only students can report listings
-            try:
-                student_profile = reporter.student_profile
-                if student_profile is None:
-                    raise ValidationError(
-                        "Solo los estudiantes pueden reportar publicaciones"
-                    )
-            except AttributeError:
+            student_profile = getattr(reporter, 'student_profile', None)
+            if student_profile is None:
                 raise ValidationError(
                     "Solo los estudiantes pueden reportar publicaciones"
                 )
             
             # Cannot report your own listing (if reporter is landlord)
-            try:
-                landlord_profile = reporter.landlord_profile
-                if landlord_profile and target_obj.landlord == landlord_profile:
-                    raise ValidationError("No puedes reportar tu propia publicación")
-            except AttributeError:
-                pass  # Reporter is not a landlord, which is fine
+            landlord_profile = getattr(reporter, 'landlord_profile', None)
+            if landlord_profile and target_obj.landlord == landlord_profile:
+                raise ValidationError("No puedes reportar tu propia publicación")
     
     @classmethod
     @transaction.atomic

@@ -97,7 +97,8 @@ class ReportAdmin(ModelAdmin):
         """Link to reviewer's admin user page."""
         if obj.reviewed_by:
             url = reverse('admin:operations_admin_change', args=[obj.reviewed_by.pk])
-            return format_html('<a href="{}">{}</a>', url, obj.reviewed_by.user.username)
+            username = obj.reviewed_by.user.username if obj.reviewed_by.user else f"Admin #{obj.reviewed_by.pk}"
+            return format_html('<a href="{}">{}</a>', url, username)
         return '-'
     reviewed_by_link.short_description = 'Reviewed By'
     
