@@ -1,16 +1,16 @@
 {% extends "authenticatedLayout.html" %}
 
-{% block title %}Listing stats{% endblock %}
+{% block title %}Estadísticas de mi publicación{% endblock %}
 
 {% block content %}
 
 {% load userTags %}
 {% if request.user|inGroup:"Landlords" %}
-  <h2>Listing statistics</h2>
+  <h2>Estadísticas</h2>
   <table border="1" cellspacing="0" cellpadding="4">
     <tr>
-      <th>Listing</th>
-      <th>Views</th>
+      <th>Arriendo</th>
+      <th>Vistas</th>
     </tr>
     {% for l in object_list %}
     <tr>
@@ -18,7 +18,7 @@
       <td>{{ l.views }}</td>
     </tr>
     {% empty %}
-    <tr><td colspan="2">No listings yet.</td></tr>
+    <tr><td colspan="2">No hay arriendos todavía.</td></tr>
     {% endfor %}
   </table>
 {% endif %}

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Listing, Comment
+from .models import Listing, Comment, Review
 
 
 class ListingForm(forms.ModelForm):
@@ -16,7 +16,20 @@ class ListingForm(forms.ModelForm):
             'shared_with_people',
             'utilities_price',
             'available',
+            # NO pongas 'images' aquí
         ]
+        labels = {
+            'price': 'Precio',
+            'location_text': 'Dirección o ubicación',
+            'lat': 'Latitud',
+            'lng': 'Longitud',
+            'zone': 'Zona',
+            'rooms': 'Habitaciones',
+            'bathrooms': 'Baños',
+            'shared_with_people': 'Personas con las que se comparte',
+            'utilities_price': 'Precio de servicios',
+            'available': 'Disponible',
+        }
 
 
 class CommentForm(forms.ModelForm):
@@ -31,4 +44,19 @@ class CommentForm(forms.ModelForm):
         }
         labels = {
             'text': 'Comentario'
+        }
+
+
+class ReviewForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['text', 'rating']
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Escribe tu reseña...'
+            })
+        }
+        labels = {
+            'text': 'Reseña'
         }

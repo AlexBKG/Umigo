@@ -1,16 +1,17 @@
 {% extends "anyAuthenticationLayout.html" %}
 
-{% block title %}Listing details{% endblock %}
+{% block title %}Detalles de arriendo{% endblock %}
 
 {% block content %}
 <h2>{{ object.location_text }}</h2>
-<p><b>Price:</b> ${{ object.price }}</p>
-<p><b>Zone:</b> {{ object.zone.name }} - {{ object.zone.city }}</p>
-<p><b>Rooms:</b> {{ object.rooms }}</p>
-<p><b>Bathrooms:</b> {{ object.bathrooms }}</p>
-<p><b>Utilities price:</b> ${{ object.utilities_price }}</p>
-<p><b>Available:</b> {{ object.available|yesno:"Yes,No" }}</p>
-<p><b>Views:</b> {{ object.views }}</p>
+<p><b>Precio:</b> ${{ object.price }}</p>
+<p><b>Zona:</b> {{ object.zone.name }} - {{ object.zone.city }}</p>
+<p><b>Número de habitaciones:</b> {{ object.rooms }}</p>
+<p><b>Baños:</b> {{ object.bathrooms }}</p>
+<p><b>Precio de servicios:</b> ${{ object.utilities_price }}</p>
+<p><b>Disponible:</b> {{ object.available|yesno:"Sí,No" }}</p>
+<p><b>Visitas:</b> {{ object.views }}</p>
+<p><b>Popularidad:</b> {{ object.popularity }}</p>
 
 {% if can_add_favorite or can_remove_favorite %}
     <hr>
@@ -68,5 +69,48 @@
 {% endif %}
 
 <br>
-<a href="{% url 'listings:listing_public_list' %}">Back to listings</a>
+
+<h3>Reseñas</h3>
+
+<ul>
+  {% for review in reviews %}
+    <li style="margin-bottom: 0.75rem;">
+      <strong>
+        {{ review.author.user.get_full_name|default:review.author.user.username }}
+      </strong><br>
+      <small>{{ review.created_at|date:"d/m/Y H:i" }}</small><br>
+      {{ review.rating }}
+      {{ review.text|linebreaks }}
+
+      {% if user.is_authenticated and review.author.user.id == user.id %}
+        <form action="{% url 'listings:review_delete' review.pk %}" method="post">
+          {% csrf_token %}
+          <button type="submit">Eliminar</button>
+        </form>
+      {% endif %}
+  {% empty %}
+    <p>No hay reseñas todavía.</p>
+  {% endfor %}
+</ul>
+
+<hr>
+{% if can_review %}
+  <h4>Dejar reseña</h4>
+  <form action="{% url 'listings:review_create' object.pk %}" method="post">
+    {% csrf_token %}
+    {{ review_form.text.errors }}
+    {{ review_form.text }}
+    {{ review_form.rating }}
+    <br>
+    <button type="submit">Enviar</button>
+  </form>
+{% else %}
+  <p>
+    Debes iniciar sesión como estudiante y no haber dejado una reseña en esta publicación antes para poder dejar una reseña.
+  </p>
+{% endif %}
+
+<br>
+<a href="{% url 'listings:listing_public_list' %}">Regresar a arriendos</a>
+
 {% endblock %}
