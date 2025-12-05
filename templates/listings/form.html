@@ -1,28 +1,66 @@
 {% extends "authenticatedLayout.html" %}
 
-{% block title %}{{ view.object|default:"Create listing" }}{% endblock %}
+{% block title %}{{ view.object|default:"Crear arriendo" }}{% endblock %}
 
 {% block content %}
 
 {% load userTags %}
 {% if request.user|inGroup:"Landlords" %}              
                 
-    <h2>{% if view.object %}Edit listing{% else %}Create listing{% endif %}</h2>
+    <h2>{% if view.object %}Editar arriendo{% else %}Crear arriendo{% endif %}</h2>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
 
-        <h3>Location helper</h3>
         <p>
-            <label for="id_location_search">Search address or place:</label>
+            <label for="id_images">Fotos del arriendo (1 a 5):</label>
+            <input
+                type="file"
+                id="id_images"
+                name="images"
+                multiple
+                accept="image/*"
+            >
+            <br>
+            <small>
+                Puedes seleccionar varias imágenes manteniendo presionada la tecla Ctrl (o Cmd en Mac).
+            </small>
+        </p>
+
+        
+        {# Si estamos editando (el Listing ya existe), mostrar fotos actuales #}
+        {% if form.instance.pk %}
+            <h3>Fotos actuales</h3>
+            <div style="display:flex; flex-wrap:wrap; gap:10px;">
+                {% for photo in form.instance.photos.all %}
+                    <div style="border:1px solid #ccc; padding:4px; text-align:center;">
+                        <img src="{{ photo.image.url }}" alt="Foto del arriendo"
+                            style="max-width:120px; max-height:120px; object-fit:cover;"><br>
+                        <label style="font-size:12px;">
+                            <input type="checkbox" name="delete_photos" value="{{ photo.id }}">
+                            Eliminar
+                        </label>
+                    </div>
+                {% empty %}
+                    <p>No hay fotos guardadas.</p>
+                {% endfor %}
+            </div>
+            <p style="font-size:12px; margin-top:4px;">
+                Puedes marcar fotos para eliminarlas y, si lo deseas, subir nuevas (siempre entre 1 y 5 en total).
+            </p>
+        {% endif %}
+        
+        <h3>Asistente de ubicación dinámico</h3>
+        <p>
+            <label for="id_location_search">Buscar dirección o lugar:</label>
             <input type="text" id="id_location_search" style="width: 300px;">
-            <button type="button" id="id_location_search_btn">Search</button>
+            <button type="button" id="id_location_search_btn">Buscar</button>
         </p>
 
         <div id="map" style="height: 400px; max-width: 600px; border: 1px solid #ccc;"></div>
 
-        <button type="submit">Save</button>
+        <button type="submit">Guardar</button>
     </form>
 
     {# Leaflet CSS/JS #}
@@ -219,5 +257,22 @@
         });
     });
     </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('listing-form');
+        if (!form) return;
+
+        form.addEventListener('submit', function(e) {
+            const checked = form.querySelectorAll('input[name="delete_photos"]:checked');
+            if (checked.length > 0) {
+                const ok = confirm(`Vas a eliminar ${checked.length} foto(s). ¿Quieres continuar?`);
+                if (!ok) {
+                    e.preventDefault();
+                }
+            }
+        });
+    });
+    </script>
 {% endif %}
+
 {% endblock %}

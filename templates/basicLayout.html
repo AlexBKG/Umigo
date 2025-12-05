@@ -29,12 +29,12 @@
             {% if user.is_authenticated %}
                 {% load userTags %}
 
-                {% if request.user|inGroup:"Students" %}
-                    <a href="{% url 'listings:listing_public_list' %}">Browse Listings</a> |
+                {% if request.user|inGroup:"Students" or request.user.is_superuser%}
+                    <a href="{% url 'listings:listing_public_list' %}">Buscar arriendos</a> |
                 {% endif %}
 
                 {% if request.user|inGroup:"Landlords" %}
-                    <a href="{% url 'listings:landlord_listing_list' %}">My listings</a> |
+                    <a href="{% url 'listings:landlord_listing_list' %}">Mis arriendos</a> |
                 {% endif %}
 
                 <form action="{% url 'users:logout' %}" method="post">
@@ -42,7 +42,7 @@
                     <button>Cerrar sesión</button>
                 </form>
 
-                {% if request.user|inGroup:"Students" %}
+                {% if request.user|inGroup:"Students" or request.user.is_superuser%}
                     <form action="{% url 'users:deactivateAccount' %}" method="post">
                         {% csrf_token %}
                         <button>Desactivar cuenta</button>

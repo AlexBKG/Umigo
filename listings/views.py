@@ -4,16 +4,13 @@ from django.urls import reverse_lazy
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView, View
 )
-from django.views.generic.edit import FormMixin
-from django.db.models import Count, Avg
-from django.conf import settings
 from django.http import HttpResponseForbidden
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.contrib.sites.shortcuts import get_current_site
 
-from .models import Listing, Comment
-from .forms import ListingForm, CommentForm
+from .models import Listing, ListingPhoto, Comment, Review
+from .forms import ListingForm, CommentForm, ReviewForm
 from .mixins import LandlordRequiredMixin
 
 
@@ -53,12 +50,22 @@ class ListingDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         listing = self.object
+        user = self.request.user
 
         context['favorited_by'] = listing.favorited_by.count()
 
         # todos ven los comentarios del anuncio
         context['comments'] = (
             Comment.objects
+            .filter(listing=listing, parent__isnull=True)
+            .select_related('author')
+            .prefetch_related('replies__author')
+            .order_by('created_at')
+        )
+
+        #Everyone sees the listing's reviews
+        context['reviews'] = (
+            Review.objects
             .filter(listing=listing)
             .select_related('author')
             .order_by('created_at')
@@ -96,6 +103,23 @@ class ListingDetailView(DetailView):
         
         # Add landlord user for reports
         context['landlord_user'] = listing.owner.user if listing.owner else None
+        # can the user review?
+        can_review = False
+        if user.is_authenticated:
+            student = getattr(user, 'student_profile', None)
+
+            can_review = student and not Review.objects.filter(listing = listing, author = student)
+
+        context['can_review'] = can_review
+        context['review_form'] = ReviewForm()  # Empty form for the template
+
+        # URL de regreso según quién está viendo
+        # (si es el dueño -> "Mis arriendos"; si no -> lista pública)
+        context['back_url'] = (
+            'listings:landlord_listing_list'  
+            if is_owner_landlord
+            else 'listings:listing_public_list'
+        )
 
         return context
 
@@ -141,11 +165,32 @@ class ListingCreateView(LandlordRequiredMixin, CreateView):
     template_name = 'listings/form.html'
 
     def form_valid(self, form):
+        # Validamos aquí las imágenes
+        images = self.request.FILES.getlist('images')
+        min_photos = 1
+        max_photos = 5
+
+        if len(images) < min_photos:
+            form.add_error(None, 'Debes subir al menos una foto.')
+            return self.form_invalid(form)
+
+        if len(images) > max_photos:
+            form.add_error(None, f'Solo se permiten máximo {max_photos} fotos.')
+            return self.form_invalid(form)
+    
         landlord = self.request.user.landlord_profile
         form.instance.owner = landlord
-        return super().form_valid(form)
+
+        # Primero guardamos el Listing
+        response = super().form_valid(form)
+
+        for img in images:
+            ListingPhoto.objects.create(listing=self.object, image=img)
+
+        return response
 
     def get_success_url(self):
+        from django.urls import reverse_lazy
         return reverse_lazy('listings:landlord_listing_list')
 
 
@@ -153,6 +198,59 @@ class ListingUpdateView(LandlordRequiredMixin, UpdateView):
     model = Listing
     form_class = ListingForm
     template_name = 'listings/form.html'
+
+    def form_valid(self, form):
+        request = self.request
+        listing = self.object  # el que se está editando
+
+        # Fotos actuales del anuncio
+        current_photos_qs = listing.photos.all()
+        current_count = current_photos_qs.count()
+
+        # Fotos marcadas para eliminar
+        delete_ids = request.POST.getlist('delete_photos')  # lista de strings
+        to_delete_qs = current_photos_qs.filter(id__in=delete_ids)
+        delete_count = to_delete_qs.count()
+
+        # Nuevas fotos que se van a subir
+        new_images = request.FILES.getlist('images')
+        new_count = len(new_images)
+
+        # Reglas de negocio
+        min_photos = 1
+        max_photos = 5
+
+        remaining_after_delete = current_count - delete_count
+        total_after = remaining_after_delete + new_count
+
+        if total_after < min_photos:
+            form.add_error(
+                None,
+                'El anuncio debe tener al menos una foto. '
+                'Sube una nueva imagen o desmarca alguna que quieras eliminar.'
+            )
+            return self.form_invalid(form)
+
+        if total_after > max_photos:
+            form.add_error(
+                None,
+                f'El anuncio no puede tener más de {max_photos} fotos en total. '
+                f'Actualmente quedarán {total_after}.'
+            )
+            return self.form_invalid(form)
+
+        # Hasta aquí las reglas se cumplen: aplicamos cambios
+        # 1) Guardamos cambios básicos del Listing
+        response = super().form_valid(form)
+
+        # 2) Eliminamos las fotos marcadas
+        to_delete_qs.delete()
+
+        # 3) Creamos las nuevas fotos
+        for img in new_images:
+            ListingPhoto.objects.create(listing=self.object, image=img)
+
+        return response
 
     def get_queryset(self):
         landlord = self.request.user.landlord_profile
@@ -232,29 +330,89 @@ class CommentCreateView(View):
     """
     Crea un comentario para un listing.
     Permite:
-      - estudiantes (en cualquier anuncio)
-      - landlord dueño del anuncio
+    - estudiantes (en cualquier anuncio)
+    - landlord dueño del anuncio
     """
+
     def post(self, request, pk):
         listing = get_object_or_404(Listing, pk=pk)
 
+        # 1. Debe estar autenticado
         if not request.user.is_authenticated:
             raise PermissionDenied("Debe iniciar sesión para comentar.")
 
         user = request.user
+
+        # 2. ¿Quién es?
         is_student = hasattr(user, 'student_profile')
         landlord = getattr(user, 'landlord_profile', None)
         is_owner_landlord = bool(landlord and listing.owner_id == landlord.id)
 
+        # 3. Solo estudiante o landlord dueño del anuncio pueden comentar
         if not (is_student or is_owner_landlord):
-            # ni estudiante, ni landlord dueño -> no puede comentar
             raise PermissionDenied("No tiene permiso para comentar en este anuncio.")
 
+        # 4. Procesar formulario (comentario nuevo o respuesta)
         form = CommentForm(request.POST)
         if form.is_valid():
             comment = form.save(commit=False)
             comment.listing = listing
             comment.author = user
+
+            # *** NUEVO: soporte para respuestas (comentarios anidados) ***
+            parent = form.cleaned_data.get("parent")  # viene del campo hidden
+            if parent is not None:
+                # Por seguridad, solo permitimos responder comentarios de este mismo listing
+                if parent.listing_id == listing.id:
+                    comment.parent = parent
+
             comment.save()
 
         return redirect('listings:listing_detail', pk=listing.pk)
+    
+class ReviewCreateView(View):
+    """
+    Creates a review for a listing.
+    Allows:
+      - students (in any listing)
+    """
+    def post(self, request, pk):
+        listing = get_object_or_404(Listing, pk=pk)
+
+        if not request.user.is_authenticated:
+            raise PermissionDenied("Debe iniciar sesión para dejar reseñas.")
+
+        user = request.user
+        student = getattr(user, 'student_profile', None)
+
+        if not student or Review.objects.filter(listing = listing, author = student):
+            #If the user is not a student or if they have already left a review, they cannot leave another one
+            raise PermissionDenied("No tiene permiso para dejar reseñas en este anuncio.")
+
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.listing = listing
+            review.author = student
+            review.save()
+
+        return redirect('listings:listing_detail', pk=listing.pk)
+
+class ReviewDeleteView(LoginRequiredMixin, DeleteView):
+    model = Review
+    template_name = 'listings/review_confirm_delete.html'
+
+    def get_success_url(self):
+        return reverse_lazy('listings:listing_detail', kwargs={'pk': self.object.listing_id})
+
+    def dispatch(self, request, *args, **kwargs):
+        review = self.get_object()
+        user = request.user
+        
+        #is the user the author of the review?
+        is_author = review.author.user == user
+
+        if user.is_superuser or is_author:
+            return super().dispatch(request, *args, **kwargs)
+
+        return HttpResponseForbidden("No tienes permiso para eliminar esta reseña.")
