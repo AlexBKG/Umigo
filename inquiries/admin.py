@@ -4,6 +4,8 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.db import transaction
 from .models import Report, UserReport, ListingReport
+from .admin_forms import ReportAdminForm
+from operations.models import Admin
 
 
 @admin.register(Report)
@@ -21,6 +23,7 @@ class ReportAdmin(ModelAdmin):
     
     Note: Moderation is handled by Report.save() in models.py
     """
+    form = ReportAdminForm  # Custom form that auto-assigns reviewed_by
     list_display = ('id', 'reporter_link', 'report_type_display', 'target_display', 'reason_short', 'status', 'created_at', 'reviewed_by_link')
     list_filter = ('status', 'report_type', 'created_at', 'updated_at')
     search_fields = ('reason', 'reporter__username', 'reporter__email')
@@ -93,46 +96,62 @@ class ReportAdmin(ModelAdmin):
         return '-'
     reviewed_by_link.short_description = 'Reviewed By'
     
-    def save_model(self, request, obj, form, change):
-        """
-        Auto-assign reviewed_by to current admin when status changes from UNDER_REVIEW.
-        """
-        if change:  # Only for existing reports
-            old_status = Report.objects.get(pk=obj.pk).status
-            new_status = obj.status
-            
-            # If status changed from UNDER_REVIEW to ACCEPTED/REJECTED
-            if old_status == 'UNDER_REVIEW' and new_status in ('ACCEPTED', 'REJECTED'):
-                if not obj.reviewed_by:
-                    # Get or create Admin instance for current user
-                    from operations.models import Admin
-                    admin_obj, created = Admin.objects.get_or_create(
-                        user=request.user
-                    )
-                    obj.reviewed_by = admin_obj
-        
-        super().save_model(request, obj, form, change)
+    def get_form(self, request, obj=None, **kwargs):
+        """Inject request into the form so it can access current user."""
+        Form = super().get_form(request, obj, **kwargs)
+        # Create dynamic subclass to pass request to form __init__
+        class RequestAwareForm(Form):
+            def __init__(self2, *args, **kw):
+                kw['request'] = request
+                super(RequestAwareForm, self2).__init__(*args, **kw)
+        return RequestAwareForm
+    
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Limit reviewed_by dropdown to only show Admin objects with staff users."""
+        if db_field.name == "reviewed_by":
+            # Only show Admin objects whose user is staff
+            kwargs["queryset"] = Admin.objects.select_related('user').filter(
+                user__isnull=False,
+                user__is_staff=True
+            )
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     @admin.action(description='✅ Accept selected reports')
     def accept_reports(self, request, queryset):
         """Bulk action to accept reports."""
         with transaction.atomic():
             count = 0
-            for report in queryset.filter(status='PENDING'):
-                report.status = 'ACCEPTED'
-                report.save()
-                count += 1
+            if request.user.is_staff:
+                # Get or create Admin profile for current user
+                admin_obj = getattr(request.user, 'admin_profile', None)
+                if admin_obj is None:
+                    admin_obj = Admin.objects.create(user=request.user)
+                
+                for report in queryset.filter(status='UNDER_REVIEW'):  # Fixed: was PENDING
+                    report.status = 'ACCEPTED'
+                    if not report.reviewed_by:
+                        report.reviewed_by = admin_obj
+                    report.save()
+                    count += 1
         self.message_user(request, f'{count} report(s) accepted successfully.')
 
-    @admin.action(description='Reject selected reports')
+    @admin.action(description='🚫 Reject selected reports')
     def reject_reports(self, request, queryset):
         """Bulk action to reject reports."""
         with transaction.atomic():
             count = 0
-            for report in queryset.filter(status='PENDING'):
-                report.status = 'REJECTED'
-                report.save()
-                count += 1
+            if request.user.is_staff:
+                # Get or create Admin profile for current user
+                admin_obj = getattr(request.user, 'admin_profile', None)
+                if admin_obj is None:
+                    admin_obj = Admin.objects.create(user=request.user)
+                
+                for report in queryset.filter(status='UNDER_REVIEW'):  # Fixed: was PENDING
+                    report.status = 'REJECTED'
+                    if not report.reviewed_by:
+                        report.reviewed_by = admin_obj
+                    report.save()
+                    count += 1
         self.message_user(request, f'{count} report(s) rejected successfully.')
 
 
