@@ -50,14 +50,16 @@ class ListingDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         listing = self.object
+        user = self.request.user
 
         context['favorited_by'] = listing.favorited_by.count()
 
         # todos ven los comentarios del anuncio
         context['comments'] = (
             Comment.objects
-            .filter(listing=listing)
+            .filter(listing=listing, parent__isnull=True)
             .select_related('author')
+            .prefetch_related('replies__author')
             .order_by('created_at')
         )
 
@@ -108,6 +110,14 @@ class ListingDetailView(DetailView):
 
         context['can_review'] = can_review
         context['review_form'] = ReviewForm()  # Empty form for the template
+
+        # URL de regreso según quién está viendo
+        # (si es el dueño -> "Mis arriendos"; si no -> lista pública)
+        context['back_url'] = (
+            'listings:landlord_listing_list'  
+            if is_owner_landlord
+            else 'listings:listing_public_list'
+        )
 
         return context
 
@@ -318,29 +328,42 @@ class CommentCreateView(View):
     """
     Crea un comentario para un listing.
     Permite:
-      - estudiantes (en cualquier anuncio)
-      - landlord dueño del anuncio
+    - estudiantes (en cualquier anuncio)
+    - landlord dueño del anuncio
     """
+
     def post(self, request, pk):
         listing = get_object_or_404(Listing, pk=pk)
 
+        # 1. Debe estar autenticado
         if not request.user.is_authenticated:
             raise PermissionDenied("Debe iniciar sesión para comentar.")
 
         user = request.user
+
+        # 2. ¿Quién es?
         is_student = hasattr(user, 'student_profile')
         landlord = getattr(user, 'landlord_profile', None)
         is_owner_landlord = bool(landlord and listing.owner_id == landlord.id)
 
+        # 3. Solo estudiante o landlord dueño del anuncio pueden comentar
         if not (is_student or is_owner_landlord):
-            # ni estudiante, ni landlord dueño -> no puede comentar
             raise PermissionDenied("No tiene permiso para comentar en este anuncio.")
 
+        # 4. Procesar formulario (comentario nuevo o respuesta)
         form = CommentForm(request.POST)
         if form.is_valid():
             comment = form.save(commit=False)
             comment.listing = listing
             comment.author = user
+
+            # *** NUEVO: soporte para respuestas (comentarios anidados) ***
+            parent = form.cleaned_data.get("parent")  # viene del campo hidden
+            if parent is not None:
+                # Por seguridad, solo permitimos responder comentarios de este mismo listing
+                if parent.listing_id == listing.id:
+                    comment.parent = parent
+
             comment.save()
 
         return redirect('listings:listing_detail', pk=listing.pk)
