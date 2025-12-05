@@ -10,7 +10,7 @@ class CustomUserChangeForm(UserChangeForm):
     email = forms.EmailField(label = "Correo")
     first_name = forms.CharField(label = "Nombre")
     last_name = forms.CharField(label = "Apellidos")
-    is_active = forms.BooleanField(label = "Activo", help_text = "Permite al usuario ingresar a su cuenta, deselecciónalo si el usuario debería estar suspendido")
+    is_active = forms.BooleanField(label = "Activo", help_text = "Permite al usuario ingresar a su cuenta, deselecciónalo si el usuario debería estar suspendido", required=False)
     suspension_end_at = forms.DateField(label = "Fecha de fin de la suspensión", required=False, help_text = "La fecha en la que se termina la suspensión del usuario, déjalo vacío si el usuario no está suspendido")
 
     class Meta:

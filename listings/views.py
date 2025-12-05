@@ -101,6 +101,8 @@ class ListingDetailView(DetailView):
         context['can_add_favorite'] = can_add_favorite
         context['can_remove_favorite'] = can_remove_favorite
         
+        # Add landlord user for reports
+        context['landlord_user'] = listing.owner.user if listing.owner else None
         # can the user review?
         can_review = False
         if user.is_authenticated:
