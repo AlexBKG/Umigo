@@ -151,7 +151,7 @@ class ReportService:
     
     @classmethod
     @transaction.atomic
-    def create_user_report(cls, *, reporter, reported_user, reason, report_type='OTHER'):
+    def create_user_report(cls, *, reporter, reported_user, reason):
         """
         Create a report against a user (convenience method).
         
@@ -159,7 +159,6 @@ class ReportService:
             reporter (User): User creating the report
             reported_user (User): User being reported
             reason (str): Reason for the report
-            report_type (str): Type of report (FRAUD, HARASSMENT, etc.)
             
         Returns:
             Report: The created report instance
@@ -168,13 +167,12 @@ class ReportService:
             reporter=reporter,
             reason=reason,
             target_type='USER',
-            target_id=reported_user.id,
-            report_type=report_type
+            target_id=reported_user.id
         )
     
     @classmethod
     @transaction.atomic
-    def create_listing_report(cls, *, reporter, listing, reason, report_type='OTHER'):
+    def create_listing_report(cls, *, reporter, listing, reason):
         """
         Create a report against a listing (convenience method).
         
@@ -182,7 +180,6 @@ class ReportService:
             reporter (User): User creating the report
             listing (Listing): Listing being reported
             reason (str): Reason for the report
-            report_type (str): Type of report (FRAUD, HARASSMENT, etc.)
             
         Returns:
             Report: The created report instance
@@ -191,13 +188,12 @@ class ReportService:
             reporter=reporter,
             reason=reason,
             target_type='LISTING',
-            target_id=listing.id,
-            report_type=report_type
+            target_id=listing.id
         )
     
     @classmethod
     @transaction.atomic
-    def create_report(cls, reporter, reason, target_type, target_id, report_type='OTHER'):
+    def create_report(cls, reporter, reason, target_type, target_id):
         """
         Create a report with full validation and transaction safety.
         
@@ -213,7 +209,6 @@ class ReportService:
             reason (str): Reason for the report (max 255 chars)
             target_type (str): 'USER' or 'LISTING'
             target_id (int): ID of the reported user or listing
-            report_type (str): Type of report (FRAUD, HARASSMENT, INAPPROPRIATE_LANGUAGE, etc.)
             
         Returns:
             Report: The created report instance
@@ -226,8 +221,7 @@ class ReportService:
                 reporter=request.user,
                 reason="Contenido fraudulento en la publicación",
                 target_type='LISTING',
-                target_id=123,
-                report_type='FRAUD'
+                target_id=123
             )
         """
         # Normalize target_type
@@ -268,17 +262,10 @@ class ReportService:
         # Validate business rules
         cls._validate_business_rules(reporter, target_type, target_obj)
         
-        # Normalize and validate report_type
-        report_type = (report_type or 'OTHER').upper()
-        valid_types = ['FRAUD', 'HARASSMENT', 'INAPPROPRIATE_LANGUAGE', 'MISLEADING_CONTENT', 'OTHER']
-        if report_type not in valid_types:
-            report_type = 'OTHER'  # Default to OTHER if invalid
-        
         # Create the report (atomic transaction)
         report = Report.objects.create(
             reporter=reporter,
-            reason=reason,
-            report_type=report_type
+            reason=reason
         )
         
         # Create the specific report type (XOR: User OR Listing)

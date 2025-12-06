@@ -13,14 +13,6 @@ class Report(models.Model):
         ('ACCEPTED', 'Aceptado'),
         ('REJECTED', 'Rechazado'),
     ]
-    
-    REPORT_TYPE_CHOICES = [
-        ('FRAUD', 'Fraude'),
-        ('HARASSMENT', 'Acoso'),
-        ('INAPPROPRIATE_LANGUAGE', 'Lenguaje inapropiado'),
-        ('MISLEADING_CONTENT', 'Contenido engañoso'),
-        ('OTHER', 'Otro'),
-    ]
 
     id = models.BigAutoField(primary_key=True)
     reporter = models.ForeignKey(
@@ -28,12 +20,7 @@ class Report(models.Model):
         on_delete=models.CASCADE,
         related_name='reports_made'
     )
-    report_type = models.CharField(
-        max_length=30,
-        choices=REPORT_TYPE_CHOICES,
-        default='OTHER',
-        help_text='Tipo de conducta reportada'
-    )
+    # report_type eliminado - no existe en MySQL
     reason = models.CharField(max_length=255)
     status = models.CharField(
         max_length=12,
@@ -54,7 +41,7 @@ class Report(models.Model):
 
     class Meta:
         db_table = 'report'
-        managed = True  # Changed for SQLite development
+        managed = False
         indexes = [
             models.Index(fields=['reporter'], name='ix_report_reporter'),
             models.Index(fields=['status'], name='ix_report_status'),
@@ -155,7 +142,7 @@ class ListingReport(models.Model):
 
     class Meta:
         db_table = 'listing_report'
-        managed = True  # Changed for SQLite development
+        managed = False
         indexes = [
             models.Index(fields=['listing'], name='ix_lreport_listing'),
         ]
@@ -185,12 +172,13 @@ class UserReport(models.Model):
     reported_user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='reports_received'
+        related_name='reports_received',
+        db_column='reported_user_id'
     )
 
     class Meta:
         db_table = 'user_report'
-        managed = True  # Changed for SQLite development
+        managed = False
         indexes = [
             models.Index(fields=['reported_user'], name='ix_ureport_user'),
         ]

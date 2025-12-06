@@ -22,4 +22,4 @@ class ZoneAdmin(admin.ModelAdmin):
 
 @admin.register(ListingPhoto)
 class ListingPhotoAdmin(admin.ModelAdmin):
-    list_display = ['id', 'listing', 'image', 'sort_order', 'created_at']
+    list_display = ['id', 'listing', 'url', 'mime_type', 'size_bytes', 'sort_order', 'created_at']
