@@ -13,12 +13,8 @@ class ReportForm(forms.ModelForm):
     
     class Meta:
         model = Report
-        fields = ['report_type', 'reason']
+        fields = ['reason']
         widgets = {
-            'report_type': forms.Select(attrs={
-                'class': 'form-control',
-                'id': 'report-type-field'
-            }),
             'reason': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
@@ -28,11 +24,9 @@ class ReportForm(forms.ModelForm):
             }),
         }
         labels = {
-            'report_type': 'Tipo de reporte',
             'reason': 'Motivo del reporte',
         }
         help_texts = {
-            'report_type': 'Selecciona el tipo de conducta que estás reportando.',
             'reason': 'Explica claramente por qué estás reportando. Sé específico.',
         }
     

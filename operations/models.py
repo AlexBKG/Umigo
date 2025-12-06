@@ -20,7 +20,7 @@ class Admin(models.Model):
 
     class Meta:
         db_table = 'admin'
-        managed = True  # Changed for SQLite development
+        managed = False
 
     def __str__(self):
         if self.user:

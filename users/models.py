@@ -22,11 +22,19 @@ class User(AbstractUser):
     email = models.EmailField("Dirección de correo", blank=False, unique=True, error_messages={"unique": "Ya existe una cuenta registrada con ese correo.",})
     suspension_end_at = models.DateField(blank=True, null=True)
 
+    class Meta:
+        managed = False
+        db_table = 'users_user'
+
     def __str__(self):
         return self.username
     
 class Student(models.Model):
     user = models.OneToOneField(User, on_delete = models.CASCADE, related_name = 'student_profile')
+
+    class Meta:
+        managed = False
+        db_table = 'users_student'
 
     def receiveAvailabilityNotification(self, domain, listing):
         mail_subject = 'Umigo: ¡Uno de tus arriendos favoritos está disponible!'
@@ -48,6 +56,10 @@ class Landlord(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='landlord_profile')
     national_id = models.CharField(max_length=20)
     id_url = models.FileField(upload_to='identificationCards')
+
+    class Meta:
+        managed = False
+        db_table = 'users_landlord'
 
     def __str__(self):
         return self.user.username

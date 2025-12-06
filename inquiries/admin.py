@@ -24,8 +24,8 @@ class ReportAdmin(ModelAdmin):
     Note: Moderation is handled by Report.save() in models.py
     """
     form = ReportAdminForm  # Custom form that auto-assigns reviewed_by
-    list_display = ('id', 'reporter_link', 'report_type_display', 'target_display', 'reason_short', 'status', 'created_at', 'reviewed_by_link')
-    list_filter = ('status', 'report_type', 'created_at', 'updated_at')
+    list_display = ('id', 'reporter_link', 'target_display', 'reason_short', 'status', 'created_at', 'reviewed_by_link')
+    list_filter = ('status', 'created_at', 'updated_at')
     search_fields = ('reason', 'reporter__username', 'reporter__email')
     readonly_fields = ('reporter', 'created_at', 'updated_at')
     date_hierarchy = 'created_at'
@@ -34,7 +34,7 @@ class ReportAdmin(ModelAdmin):
 
     fieldsets = (
         ('Report Information', {
-            'fields': ('reporter', 'report_type', 'reason', 'status')
+            'fields': ('reporter', 'reason', 'status')
         }),
         ('Review Information', {
             'fields': ('reviewed_by',),
@@ -46,11 +46,6 @@ class ReportAdmin(ModelAdmin):
         }),
     )
     
-    def report_type_display(self, obj):
-        """Display report type."""
-        return obj.get_report_type_display()
-    report_type_display.short_description = 'Tipo'
-
     def reporter_link(self, obj):
         """Link to reporter's user admin page."""
         if obj.reporter:
@@ -161,8 +156,8 @@ class UserReportAdmin(ModelAdmin):
     Admin interface for UserReport with links to related objects.
     Para editar STATUS y REVIEWED_BY, usa el link 'Edit Report' o ve a Reports directamente.
     """
-    list_display = ('report_id', 'reporter_name', 'reported_user_link', 'report_type', 'status_display', 'created_at')
-    list_filter = ('report__status', 'report__report_type', 'report__created_at')
+    list_display = ('report_id', 'reporter_name', 'reported_user_link', 'status_display', 'created_at')
+    list_filter = ('report__status', 'report__created_at')
     readonly_fields = ('report', 'reported_user', 'report_details')
     search_fields = ('reported_user__username', 'report__reason', 'report__reporter__username')
     
@@ -177,13 +172,6 @@ class UserReportAdmin(ModelAdmin):
             return obj.report.reporter.username
         return '-'
     reporter_name.short_description = 'Reporter'
-    
-    def report_type(self, obj):
-        """Display report type."""
-        if obj.report:
-            return obj.report.get_report_type_display()
-        return '-'
-    report_type.short_description = 'Type'
     
     def status_display(self, obj):
         """Display status."""
@@ -214,7 +202,7 @@ class UserReportAdmin(ModelAdmin):
         
         html = f"""
         <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #007bff;">
-            <h3 style="margin-top: 0;">Report #{r.id} - {r.get_report_type_display()}</h3>
+            <h3 style="margin-top: 0;">Report #{r.id}</h3>
             <p><strong>Reason:</strong> {r.reason}</p>
             <p><strong>Status:</strong> {r.get_status_display()}</p>
             <p><strong>Reporter:</strong> {r.reporter.username if r.reporter else '-'}</p>
@@ -238,8 +226,8 @@ class ListingReportAdmin(ModelAdmin):
     Admin interface for ListingReport with links to related objects.
     Para editar STATUS y REVIEWED_BY, usa el link 'Edit Report' o ve a Reports directamente.
     """
-    list_display = ('report_id', 'reporter_name', 'listing_link', 'report_type', 'status_display', 'created_at')
-    list_filter = ('report__status', 'report__report_type', 'report__created_at')
+    list_display = ('report_id', 'reporter_name', 'listing_link', 'status_display', 'created_at')
+    list_filter = ('report__status', 'report__created_at')
     readonly_fields = ('report', 'listing', 'report_details')
     search_fields = ('listing__location_text', 'report__reason', 'report__reporter__username')
     
@@ -254,13 +242,6 @@ class ListingReportAdmin(ModelAdmin):
             return obj.report.reporter.username
         return '-'
     reporter_name.short_description = 'Reporter'
-    
-    def report_type(self, obj):
-        """Display report type."""
-        if obj.report:
-            return obj.report.get_report_type_display()
-        return '-'
-    report_type.short_description = 'Type'
     
     def status_display(self, obj):
         """Display status."""
@@ -291,7 +272,7 @@ class ListingReportAdmin(ModelAdmin):
         
         html = f"""
         <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745;">
-            <h3 style="margin-top: 0;">Report #{r.id} - {r.get_report_type_display()}</h3>
+            <h3 style="margin-top: 0;">Report #{r.id}</h3>
             <p><strong>Reason:</strong> {r.reason}</p>
             <p><strong>Status:</strong> {r.get_status_display()}</p>
             <p><strong>Reporter:</strong> {r.reporter.username if r.reporter else '-'}</p>

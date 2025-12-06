@@ -44,8 +44,7 @@ class ReportUserFormView(CanReportMixin, FormView):
                 reporter=self.request.user,
                 reason=form.cleaned_data['reason'],
                 target_type='USER',
-                target_id=self.reported_user.id,
-                report_type=form.cleaned_data.get('report_type', 'OTHER')
+                target_id=self.reported_user.id
             )
             messages.success(self.request, 'Tu reporte fue enviado para revisión.')
         except ValidationError as e:
@@ -102,8 +101,7 @@ class ReportListingFormView(StudentRequiredMixin, FormView):
                 reporter=self.request.user,
                 reason=form.cleaned_data['reason'],
                 target_type='LISTING',
-                target_id=self.listing.id,
-                report_type=form.cleaned_data.get('report_type', 'OTHER')
+                target_id=self.listing.id
             )
             messages.success(self.request, 'Tu reporte sobre la publicación fue enviado.')
         except ValidationError as e:

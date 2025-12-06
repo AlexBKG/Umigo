@@ -8,6 +8,8 @@ from django.http import HttpResponseForbidden
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.files.storage import default_storage
+import os
 
 from .models import Listing, ListingPhoto, Comment, Review
 from .forms import ListingForm, CommentForm, ReviewForm
@@ -184,8 +186,19 @@ class ListingCreateView(LandlordRequiredMixin, CreateView):
         # Primero guardamos el Listing
         response = super().form_valid(form)
 
-        for img in images:
-            ListingPhoto.objects.create(listing=self.object, image=img)
+        for idx, img in enumerate(images):
+            # Guardar archivo
+            filename = default_storage.save(f'listing_photos/{img.name}', img)
+            file_path = default_storage.path(filename)
+            
+            # Crear registro en BD
+            ListingPhoto.objects.create(
+                listing=self.object,
+                url=filename,
+                mime_type=img.content_type or 'image/png',
+                size_bytes=img.size,
+                sort_order=idx
+            )
 
         return response
 
@@ -247,8 +260,17 @@ class ListingUpdateView(LandlordRequiredMixin, UpdateView):
         to_delete_qs.delete()
 
         # 3) Creamos las nuevas fotos
-        for img in new_images:
-            ListingPhoto.objects.create(listing=self.object, image=img)
+        current_max_order = ListingPhoto.objects.filter(listing=self.object).count()
+        for idx, img in enumerate(new_images):
+            filename = default_storage.save(f'listing_photos/{img.name}', img)
+            
+            ListingPhoto.objects.create(
+                listing=self.object,
+                url=filename,
+                mime_type=img.content_type or 'image/png',
+                size_bytes=img.size,
+                sort_order=current_max_order + idx
+            )
 
         return response
 
@@ -275,13 +297,32 @@ class ListingToggleAvailabilityView(LandlordRequiredMixin, View):
     Cambia disponible <-> no disponible (solo del owner).
     """
     def post(self, request, pk):
+        from django.db import IntegrityError
+        from django.contrib import messages
+        
         landlord = request.user.landlord_profile
         listing = get_object_or_404(Listing, pk=pk, owner=landlord)
-        listing.available = not listing.available
-        listing.save(update_fields=['available'])
-
-        if listing.available:
-            listing.notifyAvailabilityToStudents(get_current_site(request).domain)
+        
+        new_status = not listing.available
+        
+        try:
+            listing.available = new_status
+            listing.save(update_fields=['available'])
+            
+            if listing.available:
+                listing.notifyAvailabilityToStudents(get_current_site(request).domain)
+                messages.success(request, 'El listing está ahora disponible.')
+            else:
+                messages.info(request, 'El listing está ahora marcado como no disponible.')
+                
+        except IntegrityError as e:
+            # Captura error del trigger MySQL
+            error_msg = str(e)
+            if 'al menos 1 foto' in error_msg.lower() or 'require' in error_msg.lower():
+                messages.error(request, 'No puedes marcar como disponible un listing sin fotos. Sube al menos 1 foto primero.')
+            else:
+                messages.error(request, f'Error al cambiar disponibilidad: {error_msg}')
+        
         return redirect('listings:landlord_listing_list')
 
 
