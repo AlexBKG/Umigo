@@ -1,7 +1,7 @@
 import re
 from django import forms
 from django.contrib.auth import password_validation
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm, SetPasswordForm
+from django.contrib.auth.forms import UserChangeForm, UserCreationForm, SetPasswordForm, AuthenticationForm
 from django.utils.translation import gettext_lazy as _
 
 from .models import User, Student, Landlord
@@ -10,7 +10,7 @@ class CustomUserChangeForm(UserChangeForm):
     email = forms.EmailField(label = "Correo")
     first_name = forms.CharField(label = "Nombre")
     last_name = forms.CharField(label = "Apellidos")
-    is_active = forms.BooleanField(label = "Activo", help_text = "Permite al usuario ingresar a su cuenta, deselecciónalo si el usuario debería estar suspendido")
+    is_active = forms.BooleanField(label = "Activo", help_text = "Permite al usuario ingresar a su cuenta, deselecciónalo si el usuario debería estar suspendido", required=False)
     suspension_end_at = forms.DateField(label = "Fecha de fin de la suspensión", required=False, help_text = "La fecha en la que se termina la suspensión del usuario, déjalo vacío si el usuario no está suspendido")
 
     class Meta:
@@ -80,4 +80,13 @@ class PasswordForm(SetPasswordForm):
     error_messages = {
         **SetPasswordForm.error_messages,
         "password_mismatch": "Las contraseñas no coinciden.",  # your custom text
+    }
+
+class LoginForm(AuthenticationForm):
+    error_messages = {
+        "invalid_login": _(
+            "Por favor ingresa un nombre de usuario y contraseña correctos, asegúrate de que estén bien "
+            "escritos incluyendo mayúsculas."
+        ),
+        "inactive": _("Esta cuenta no se encuentra activa, revisa tu correo para activarla con el enlace que enviamos en tu proceso de registro."),
     }

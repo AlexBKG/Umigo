@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, get_user_model
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
 from django.contrib.auth.models import Group
 from django.contrib.messages.views import SuccessMessageMixin
@@ -15,7 +14,7 @@ from django.urls import reverse_lazy
 from users.models import User, Student
 
 from .tokens import account_activation_token
-from .forms import CustomUserCreationForm, LandlordCreationForm, PasswordForm
+from .forms import CustomUserCreationForm, LandlordCreationForm, PasswordForm, LoginForm
 
 def registerHomeView(request):
     return render(request, 'users/registerHome.html')
@@ -47,7 +46,7 @@ def landlordRegisterView(request):
             )
             email.send()
             
-            return redirect("users/landlordSuccessfulRegister")
+            return redirect("users:landlordSuccessfulRegister")
     else:
         user_form = CustomUserCreationForm()
         landlord_profile_form = LandlordCreationForm()
@@ -92,7 +91,7 @@ def studentSuccessfulRegisterView(request):
 
 def loginView(request):
     if request.method == "POST":
-        form = AuthenticationForm(data = request.POST)
+        form = LoginForm(data = request.POST)
         if form.is_valid():
             login(request, form.get_user())
             if "next" in request.POST:
@@ -100,7 +99,7 @@ def loginView(request):
             else:
                 return redirect("/")
     else:
-        form = AuthenticationForm()
+        form = LoginForm()
     return render(request, 'users/login.html', {"form" : form})
 
 def logoutView(request):

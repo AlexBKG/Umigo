@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umi★Go - Casa Familiar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-orange: #ff6b35;
+            --dark-teal: #1a4d5c;
+            --medium-teal: #2d7b8f;
+            --light-gray: #f5f5f5;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+        }
+        
+        .navbar {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 0.5rem 0;
+        }
+        
+        .navbar-brand img {
+            height: 70px;
+            margin-top: -10px;
+            margin-bottom: -10px;
+        }
+        
+        .btn-user {
+            background-color: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, var(--medium-teal) 0%, var(--dark-teal) 100%);
+            color: white;
+            padding: 40px 0;
+        }
+        
+        .hero-title {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .hero-subtitle {
+            font-size: 1rem;
+            margin-bottom: 0;
+        }
+        
+        .map-box {
+            background-color: white;
+            border-radius: 15px;
+            padding: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .map-box iframe {
+            width: 100%;
+            height: 150px;
+            border: none;
+            border-radius: 10px;
+        }
+        
+        .btn-map {
+            background-color: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .main-content {
+            padding: 40px 0;
+        }
+        
+        .gallery-section {
+            margin-bottom: 30px;
+        }
+        
+        .main-photo {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .thumbnail-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
+        .thumbnail {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .thumbnail:hover {
+            border-color: var(--primary-orange);
+        }
+        
+        .info-box {
+            background-color: #f0f0f0;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box h3 {
+            color: var(--dark-teal);
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .info-box h4 {
+            color: var(--dark-teal);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .info-box p {
+            color: #333;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+        
+        .amenities-icons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            text-align: center;
+        }
+        
+        .amenity {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .amenity img {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 8px;
+        }
+        
+        .amenity span {
+            font-size: 0.75rem;
+            color: #333;
+        }
+        
+        .price-card {
+            background-color: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .price-amount {
+            color: var(--dark-teal);
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .price-info {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        
+        .owner-name {
+            color: var(--dark-teal);
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .btn-interest {
+            background-color: var(--primary-orange);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        
+        .rating-container {
+            background-color: white;
+            border: 2px solid var(--primary-orange);
+            border-radius: 10px;
+            padding: 12px;
+        }
+        
+        .stars-rating {
+            color: var(--primary-orange);
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+        
+        .rating-info {
+            color: #333;
+            font-size: 0.85rem;
+        }
+        
+        .services-section {
+            background-color: #f8f9fa;
+            padding: 40px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .services-title {
+            color: var(--dark-teal);
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .services-intro {
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        .service-item {
+            margin-bottom: 18px;
+        }
+        
+        .service-title {
+            color: var(--dark-teal);
+            font-weight: bold;
+            margin-bottom: 3px;
+            font-size: 0.95rem;
+        }
+        
+        .service-desc {
+            color: #555;
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+        
+        .mascot-bottom {
+            position: absolute;
+            bottom: -10px;
+            right: 40px;
+            width: 280px;
+        }
+        
+        .footer-section {
+            background-color: var(--dark-teal);
+            color: white;
+            padding: 20px 0;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-logo {
+            height: 120px;
+            margin: -20px -250px;
+        }
+        
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 20px;
+        }
+        
+        .social-icons a {
+            color: white;
+            font-size: 1.5rem;
+            margin: 0 10px;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 1.5rem;
+            }
+            
+            .mascot-bottom {
+                display: none;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <img src="img/IconoUmigo.png" alt="Umi★Go" height="20px;">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="viviendas.html">Viviendas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#alianzas">Alianzas</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contacto">Contacto</a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <button class="btn btn-user">
+                            <i class="bi bi-person-circle"></i> ¡Hola, Daniel!
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="hero-title">Encuentra tu Hogar Universitario en Bogotá</h1>
+                    <p class="hero-subtitle">Explora nuestras opciones de residencias seguras y cómodas cerca de tu campus.</p>
+                </div>
+                <div class="col-lg-4">
+                    <div class="map-box">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3976.8!2d-74.0628!3d4.6486!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNMKwMzgnNTUuMCJOIDc0wrAwMyczOC4xIlc!5e0!3m2!1sen!2sco!4v1234567890"></iframe>
+                        <button class="btn btn-map" onclick="window.open('https://www.google.com/maps/@4.6486,-74.0628,15z', '_blank')">Ver en el mapa</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="main-content">
+        <div class="container">
+            <div class="row">
+                <!-- Left Column - Gallery and Info -->
+                <div class="col-lg-7">
+                    <!-- Gallery -->
+                    <div class="gallery-section">
+                        <img src="https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800" alt="Habitación" class="main-photo" id="mainPhoto">
+                        <div class="thumbnail-grid">
+                            <img src="https://images.unsplash.com/photo-1540518614846-7eded433c457?w=300" alt="Sala" class="thumbnail" onclick="changePhoto(this.src)">
+                            <img src="https://images.unsplash.com/photo-1556020685-ae41abfc9365?w=300" alt="Cocina" class="thumbnail" onclick="changePhoto(this.src)">
+                            <img src="https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=300" alt="Baño" class="thumbnail" onclick="changePhoto(this.src)">
+                        </div>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="info-box">
+                        <h3>Sobre tu nuevo hogar</h3>
+                        <h4>Casa familiar</h4>
+                        <p>Todo lo que incluye este arriendo ¡Sin costos extra!</p>
+                        
+                        <div class="amenities-icons">
+                            <div class="amenity">
+                                <img src="https://cdn-icons-png.flaticon.com/128/1828/1828884.png" alt="Aseo">
+                                <span>Aseo general</span>
+                            </div>
+                            <div class="amenity">
+                                <img src="https://cdn-icons-png.flaticon.com/128/2991/2991235.png" alt="Coworking">
+                                <span>Co-working</span>
+                            </div>
+                            <div class="amenity">
+                                <img src="https://cdn-icons-png.flaticon.com/128/2099/2099199.png" alt="WiFi">
+                                <span>Wi-Fi</span>
+                            </div>
+                            <div class="amenity">
+                                <img src="https://cdn-icons-png.flaticon.com/128/2205/2205810.png" alt="Seguridad">
+                                <span>Seguridad 24/7</span>
+                            </div>
+                            <div class="amenity">
+                                <img src="https://cdn-icons-png.flaticon.com/128/2917/2917995.png" alt="Servicios">
+                                <span>Servicios</span>
+                            </div>
+                            <div class="amenity">
+                                <img src="https://cdn-icons-png.flaticon.com/128/3004/3004458.png" alt="Ambiente">
+                                <span>Ambiente de estudio</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Price and Contact -->
+                <div class="col-lg-5">
+                    <div class="price-card">
+                        <p class="price-amount">$000.00 COP / MES</p>
+                        <p class="price-info">Incluye: Todos los servicios y administración</p>
+                        <p class="owner-name">Juana De Cruz</p>
+                        <button class="btn btn-interest">¡Me Interesa!<br>Hablemos por acá</button>
+                        
+                        <div class="rating-container">
+                            <div class="stars-rating">★★★★<span style="color:#ffc107;">★</span></div>
+                            <p class="rating-info"><strong>4.5</strong> / 5 estrellas • Ver 35 Valoraciones</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services-section">
+        <div class="container">
+            <h2 class="services-title">Servicios Clave: Tu Arriendo 'Todo Incluido'</h2>
+            <p class="services-intro">Creemos que tu única preocupación debe ser estudiar. Por eso, tu tarifa mensual incluye absolutamente todo. ¡Cero costos ocultos!</p>
+            
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="service-item">
+                        <p class="service-title">Arriendo y Servicios (Todo Cubierto):</p>
+                        <p class="service-desc">Una sola factura que incluye agua, luz, gas y administración.</p>
+                    </div>
+                    
+                    <div class="service-item">
+                        <p class="service-title">Conexión Premium:</p>
+                        <p class="service-desc">Wi-Fi de Fibra Óptica de alta velocidad, ideal para tus estudios y entretenimiento.</p>
+                    </div>
+                    
+                    <div class="service-item">
+                        <p class="service-title">Seguridad 24/7:</p>
+                        <p class="service-desc">Vigilancia, acceso controlado y monitoreo constante para la tranquilidad de tu familia.</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="service-item">
+                        <p class="service-title">Hogar Impecable:</p>
+                        <p class="service-desc">Servicio de aseo semanal en áreas comunes y acceso a zona de lavandería.</p>
+                    </div>
+                    
+                    <div class="service-item">
+                        <p class="service-title">Ambiente de Estudio:</p>
+                        <p class="service-desc">Acceso a zonas de co-working tranquilas y áreas comunes para socializar con la comunidad Umi.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <img src="img/mascota.png" alt="Mascota" class="mascot-bottom d-none d-lg-block">
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-section">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <img src="img/IconoLetras.png" alt="Umi★Go" class="footer-logo">
+                </div>
+                
+                <div class="footer-links">
+                    <a href="#">Política de Privacidad</a>
+                    <a href="#">Aviso Legal</a>
+                </div>
+                
+                <div class="social-icons">
+                    <a href="#"><i class="bi bi-tiktok"></i></a>
+                    <a href="#"><i class="bi bi-instagram"></i></a>
+                    <span style="font-size: 1rem; margin-left: 10px;">@Umigo_Oficial</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function changePhoto(src) {
+            var newSrc = src.replace("w=300", "w=800");
+            document.getElementById("mainPhoto").src = newSrc;
+        }
+    </script>
+</body>
+</html>
