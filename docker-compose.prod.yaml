@@ -9,8 +9,6 @@ services:
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_USER: ${DB_USER}
       MYSQL_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./docker/mysql:/docker-entrypoint-initdb.d
@@ -23,15 +21,16 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     container_name: umigo_web_prod
     env_file:
       - .env
+    command: gunicorn yourprojectname.wsgi:application --bind 0.0.0.0:8000
     depends_on:
       db:
         condition: service_healthy
     volumes:
-      - .:/app
+      - media:/app/media/
     ports:
       - "8000:8000"     
 

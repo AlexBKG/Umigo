@@ -16,7 +16,7 @@ python manage.py collectstatic --noinput
 
 # Check if initial data is already loaded
 echo "Checking if database is empty..."
-ROWCOUNT=$(echo "SELECT COUNT(*) FROM zone;" | mysql -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" -h mysql -D "$MYSQL_DATABASE" | tail -n 1)
+ROWCOUNT=$(echo "SELECT COUNT(*) FROM zone;" | mysql -u"$DB_USER" -p"$DB_PASSWORD" -h mysql -D "$DB_NAME" | tail -n 1)
 
 if [ "$ROWCOUNT" = "0" ]; then
   echo "Loading initial data..."
