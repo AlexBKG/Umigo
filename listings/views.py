@@ -8,8 +8,6 @@ from django.http import HttpResponseForbidden
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.files.storage import default_storage
-import os
 
 from .models import Listing, ListingPhoto, Comment, Review
 from .forms import ListingForm, CommentForm, ReviewForm
@@ -55,6 +53,9 @@ class ListingDetailView(DetailView):
         user = self.request.user
 
         context['favorited_by'] = listing.favorited_by.count()
+        
+        # Fotos del listing ordenadas por sort_order
+        context['photos'] = listing.photos.all().order_by('sort_order')
 
         # todos ven los comentarios del anuncio
         context['comments'] = (
@@ -172,7 +173,8 @@ class ListingCreateView(LandlordRequiredMixin, CreateView):
         min_photos = 1
         max_photos = 5
 
-        if len(images) < min_photos:
+        # Validación: DEBE tener al menos 1 foto para crear el listing
+        if not images or len(images) < min_photos:
             form.add_error(None, 'Debes subir al menos una foto.')
             return self.form_invalid(form)
 
@@ -187,14 +189,10 @@ class ListingCreateView(LandlordRequiredMixin, CreateView):
         response = super().form_valid(form)
 
         for idx, img in enumerate(images):
-            # Guardar archivo
-            filename = default_storage.save(f'listing_photos/{img.name}', img)
-            file_path = default_storage.path(filename)
-            
-            # Crear registro en BD
+            # Crear registro en BD usando ImageField directamente
             ListingPhoto.objects.create(
                 listing=self.object,
-                url=filename,
+                image=img,
                 mime_type=img.content_type or 'image/png',
                 size_bytes=img.size,
                 sort_order=idx
@@ -262,11 +260,9 @@ class ListingUpdateView(LandlordRequiredMixin, UpdateView):
         # 3) Creamos las nuevas fotos
         current_max_order = ListingPhoto.objects.filter(listing=self.object).count()
         for idx, img in enumerate(new_images):
-            filename = default_storage.save(f'listing_photos/{img.name}', img)
-            
             ListingPhoto.objects.create(
                 listing=self.object,
-                url=filename,
+                image=img,
                 mime_type=img.content_type or 'image/png',
                 size_bytes=img.size,
                 sort_order=current_max_order + idx

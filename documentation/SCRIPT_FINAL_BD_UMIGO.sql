@@ -744,6 +744,36 @@ END$$
 
 DELIMITER ;
 
+-- =====================================================
+-- 📅 EVENTO PROGRAMADO: Auto-reactivación de usuarios
+-- =====================================================
+-- Este evento se ejecuta diariamente para reactivar automáticamente
+-- a los usuarios cuya suspensión ya expiró, sin necesidad de que
+-- intenten hacer login.
+
+-- Habilitar el programador de eventos (Event Scheduler)
+SET GLOBAL event_scheduler = ON;
+
+DELIMITER $$
+
+DROP EVENT IF EXISTS evt_auto_unsuspend_users$$
+
+CREATE EVENT evt_auto_unsuspend_users
+ON SCHEDULE EVERY 1 DAY
+STARTS CURRENT_TIMESTAMP
+DO
+BEGIN
+    -- Reactivar usuarios cuya suspensión ya expiró
+    UPDATE users_user
+    SET is_active = TRUE,
+        suspension_end_at = NULL
+    WHERE is_active = FALSE
+      AND suspension_end_at IS NOT NULL
+      AND suspension_end_at < CURDATE();
+END$$
+
+DELIMITER ;
+
 
 SET FOREIGN_KEY_CHECKS = 1;
 

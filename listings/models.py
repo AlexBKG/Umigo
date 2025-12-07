@@ -93,7 +93,7 @@ class Listing(models.Model):
 
 class ListingPhoto(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='photos')
-    url = models.CharField(max_length=300)
+    image = models.ImageField(upload_to='listing_photos/', db_column='url')
     mime_type = models.CharField(max_length=50)
     size_bytes = models.BigIntegerField()
     sort_order = models.SmallIntegerField(default=0)
