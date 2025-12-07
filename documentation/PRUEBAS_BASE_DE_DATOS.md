@@ -1,8 +1,8 @@
 # 🧪 GUÍA COMPLETA DE PRUEBAS - Base de Datos Umigo
 
-**Versión:** 3.6 FINAL  
+**Versión:** 3.7 FINAL  
 **Fecha:** 6 de diciembre de 2025  
-**Base de datos:** MySQL 8.0 con 23 tablas y 11 triggers
+**Base de datos:** MySQL 8.0 con 23 tablas, 11 triggers y 1 evento programado
 
 ---
 
@@ -43,11 +43,21 @@ Verificar que la base de datos funciona correctamente en todos sus aspectos:
 
 ### 11 Triggers Activos
 
-1. **trg_listing_check_photos** - Valida 1-5 fotos si available=TRUE
-2. **trg_comment_check_listing** - Valida que parent y reply estén en el mismo listing
-3. **trg_listing_report_xor** - Valida que solo se reporte listing O usuario (XOR)
-4. **trg_user_report_xor** - Valida que solo se reporte usuario O listing (XOR)
-5. **trg_user_report_no_self** - Previene auto-reportes
+1. **trg_check_suspension_on_login** - Reactiva usuario al hacer login si la suspensión expiró
+2. **trg_listing_check_photos** - Valida 1-5 fotos si available=TRUE
+3. **trg_comment_check_listing** - Valida que parent y reply estén en el mismo listing
+4. **trg_listing_report_xor** - Valida que solo se reporte listing O usuario (XOR)
+5. **trg_user_report_xor** - Valida que solo se reporte usuario O listing (XOR)
+6. **trg_user_report_no_self** - Previene auto-reportes
+7. **trg_review_insert_update_popularity** - Actualiza popularidad con AVG(rating)
+8. **trg_review_update_update_popularity** - Actualiza si cambia el rating
+9. **trg_review_delete_update_popularity** - Recalcula al eliminar review
+10. **trg_auto_moderation** - Auto-suspensión/eliminación al aceptar reporte
+11. **trg_prevent_admin_report** - Previene reportes a administradores
+
+### 1 Evento Programado
+
+1. **evt_auto_unsuspend_users** - Se ejecuta diariamente a medianoche para reactivar automáticamente a usuarios cuya suspensión expiró
 6. **trg_review_insert_update_popularity** - Actualiza popularidad con AVG(rating)
 7. **trg_review_update_update_popularity** - Actualiza si cambia el rating
 8. **trg_review_delete_update_popularity** - Recalcula al eliminar review

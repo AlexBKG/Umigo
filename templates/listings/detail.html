@@ -4,6 +4,34 @@
 
 {% block content %}
 <h2>{{ object.location_text }}</h2>
+
+{# Sección de fotos del listing #}
+{% if photos %}
+    <div class="listing-photos" style="margin: 20px 0;">
+        <div id="listingCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                {% for photo in photos %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <img src="{{ photo.image.url }}" class="d-block w-100" alt="Foto {{ forloop.counter }}" style="max-height: 500px; object-fit: cover;">
+                    </div>
+                {% endfor %}
+            </div>
+            {% if photos|length > 1 %}
+                <button class="carousel-control-prev" type="button" data-bs-target="#listingCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Anterior</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#listingCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Siguiente</span>
+                </button>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    <p><i>Este listing no tiene fotos disponibles.</i></p>
+{% endif %}
+
 <p><b>Precio:</b> ${{ object.price }}</p>
 <p><b>Zona:</b> {{ object.zone.name }} - {{ object.zone.city }}</p>
 <p><b>Número de habitaciones:</b> {{ object.rooms }}</p>

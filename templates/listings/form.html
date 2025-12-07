@@ -21,6 +21,7 @@
                 name="images"
                 multiple
                 accept="image/*"
+                {% if not form.instance.pk %}required{% endif %}
             >
             <br>
             <small>
@@ -28,7 +29,6 @@
             </small>
         </p>
 
-        
         {# Si estamos editando (el Listing ya existe), mostrar fotos actuales #}
         {% if form.instance.pk %}
             <h3>Fotos actuales</h3>
