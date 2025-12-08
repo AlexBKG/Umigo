@@ -5,26 +5,83 @@
 {% endblock %}
 
 {% block content %}  
-    <h1>Bienvenido de nuevo, ingresa a tu cuenta</h1>
-        <form action="{% url 'users:login' %}" method="post"> 
-            {% csrf_token %}
-            {{ form.non_field_errors }}
-            <div>
-                {{ form.username.errors }}
-                <label for="{{ form.username.id_for_label }}">Nombre de Usuario:</label>
-                {{ form.username }}
-            </div>
-            <div>
-                {{ form.password.errors }}
-                <label for="{{ form.password.id_for_label }}">Contraseña:</label>
-                {{ form.password }}
-            </div>
-            {% if request.GET.next %}
-                <input type="hidden" name="next" value="{{ request.GET.next }}"/>
-            {% endif %}
-            <button>Ingresar</button>
-        </form>
 
-        <a href="{% url 'users:passwordReset' %}">¿Olvidaste tu contraseña?</a>
-        <a href="{% url 'users:registerHome' %}">¿No tienes cuenta? Regístrate aquí</a>
+
+
+    <!DOCTYPE html>
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Umi★Go - Iniciar Sesión</title>
+
+</head>
+<body>
+    <!-- Navbar -->
+
+    <!-- Login Section -->
+    <section class="login-section position-relative">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6" style="margin-left: 350px;">
+                    <div class="login-card">
+                        <h1 class="login-title">Bienvenido de Nuevo a Umi<span style="color: var(--primary-orange);">★</span>Go</h1>
+                        <p class="login-subtitle">Ingresa a tu cuenta para gestionar tus residencias, pagos y más.</p>
+                        
+                        <form action="{% url 'users:login' %}" method="post"> 
+                            {% csrf_token %}
+                            {{ form.non_field_errors }}
+                            <div class="mb-4">
+                                {{ form.username.errors }}
+                                <label for="{{ form.username.id_for_label }}" class="form-label">Usuario</label>
+                                {{ form.username }}
+                            </div>
+                            <div class="mb-3">
+                                {{ form.password.errors }}
+                                <label for="{{ form.password.id_for_label }}" class="form-label">Contraseña</label>
+                                {{ form.password }}
+                            </div>
+                            {% if request.GET.next %}
+                                <input type="hidden" name="next" value="{{ request.GET.next }}"/>
+                            {% endif %}
+                            <button type="submit" class="btn btn-login-login">Ingresar</button>
+                        </form>
+                        
+                        <div class="forgot-password">
+                            <a href="{% url 'users:passwordReset' %}">¿Olvidaste tu contraseña?</a>
+                        </div>
+                        
+                        <div class="register-link">
+                            <a href="{% url 'users:registerHome' %}">¿No tienes cuenta? Regístrate aquí</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-section">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <img src="{% static 'css/IconoLetras.png' %}" alt="Umi★Go" class="footer-logo">
+                </div>
+                
+                <div class="footer-links">
+                    <a href="#">Política de Privacidad</a>
+                    <a href="#">Aviso Legal</a>
+                </div>
+                
+                <div class="social-icons">
+                    <a href="#"><i class="bi bi-tiktok"></i></a>
+                    <a href="#"><i class="bi bi-instagram"></i></a>
+                    <span style="font-size: 1rem; margin-left: 10px;">@Umigo_Oficial</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+
 {% endblock %}

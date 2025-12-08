@@ -1,13 +1,80 @@
 {% extends 'notAuthenticatedLayout.html' %}
+{% load static %}
 
 {% block title %}
     Umigo: Regístrate
 {% endblock %}
 
-{% block content %}   
-    <h1>Para empezar, dinos: ¿Cómo quieres unirte?</h1>
-    <a href="{% url 'users:studentRegister' %}">Estudiante</a>
-    <a href="{% url 'users:landlordRegister' %}">Arrendador</a>
+{% block content %} 
 
-    <a href="{% url 'users:login' %}">¿Ya tienes cuenta? Inicia sesión aquí</a>
+    <body>
+
+    <!-- Register Section -->
+    <section class="register-section position-relative">
+        <div class="container">
+            <h1 class="register-title">Únete a la Comunidad Umi<span style="color: var(--primary-orange);">★</span>Go</h1>
+            <p class="register-subtitle">Para empezar, dinos: ¿Cómo quieres unirte?</p>
+            
+            <div class="row g-4">
+                <!-- Opción Estudiante -->
+                <div class="col-lg-5 col-md-6 mx-auto">
+                    <div class="option-card student">
+                        <div class="icon-circle student">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <h2 class="option-title">Soy Estudiante</h2>
+                        <p class="option-description">Busco un hogar universitario seguro y cómodo en Bogotá.</p>
+                        <button class="btn btn-register-option student" onclick="window.location.href='{% url 'users:studentRegister' %}' ">
+                            Registrarme como Estudiante
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Opción Arrendador -->
+                <div class="col-lg-5 col-md-6 mx-auto">
+                    <div class="option-card landlord">
+                        <div class="icon-circle landlord">
+                            <i class="bi bi-house-fill"></i>
+                        </div>
+                        <h2 class="option-title">Soy Arrendador</h2>
+                        <p class="option-description">Quiero ofrecer mi propiedad a estudiantes foráneos.</p>
+                        <button class="btn btn-register-option landlord" onclick="window.location.href='{% url 'users:landlordRegister' %}'">
+                            Registrarme como Arrendador
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="login-link">
+                <span>¿Ya tienes cuenta? </span><a href="{% url 'users:login' %}">Inicia Sesión aquí.</a>
+            </div>
+        </div>
+        
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-section">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <img src="{% static 'css/IconoLetras.png' %}" alt="Umi★Go" class="footer-logo">
+                </div>
+                
+                <div class="footer-links">
+                    <a href="#">Política de Privacidad</a>
+                    <a href="#">Aviso Legal</a>
+                </div>
+                
+                <div class="social-icons">
+                    <a href="#"><i class="bi bi-tiktok"></i></a>
+                    <a href="#"><i class="bi bi-instagram"></i></a>
+                    <span style="font-size: 1rem; margin-left: 10px;">@Umigo_Oficial</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+</body>
+
 {% endblock %}
