@@ -3,7 +3,7 @@
 set -e
 
 echo "Waiting for MySQL..."
-while ! nc -z mysql 3306; do
+while ! nc -z db 3306; do
   sleep 1
 done
 echo "MySQL is up."
@@ -15,15 +15,8 @@ echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
 # Check if initial data is already loaded
-echo "Checking if database is empty..."
-ROWCOUNT=$(echo "SELECT COUNT(*) FROM zone;" | mysql -u"$DB_USER" -p"$DB_PASSWORD" -h mysql -D "$DB_NAME" | tail -n 1)
-
-if [ "$ROWCOUNT" = "0" ]; then
-  echo "Loading initial data..."
-  python manage.py loaddata zones.json
-else
-  echo "Initial data already present. Skipping loaddata."
-fi
+echo "Loading initial zones data..."
+python manage.py loaddata zones.json || echo "Already loaded"
 
 echo "Starting Django server..."
 python manage.py runserver 0.0.0.0:8000
