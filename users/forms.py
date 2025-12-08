@@ -27,21 +27,32 @@ class CustomUserChangeForm(UserChangeForm):
 class CustomUserCreationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["first_name"].required = True
-        self.fields["last_name"].required = True
-        self.fields["email"].required = True
+        
+        placeholders = {
+        "first_name": "Ingrese su nombre",
+        "last_name": "Ingrese su apellido", 
+        "email": "Ingrese su correo electrónico"
+    }
+        
+        
+        for field in ["first_name", "last_name", "email"]:
+            self.fields[field].required = True
+            self.fields[field].widget.attrs.update({
+                'class': 'form-control',
+                'placeholder': placeholders[field]
+            })
 
     password1 = forms.CharField(
         label="Contraseña",
         required=True,
         strip=False,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
-        help_text=password_validation.password_validators_help_text_html(),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "form-control", "placeholder":"Ingrese su contraseña"  }),
+        
     )
     password2 = forms.CharField(
         label="Confirmar Contraseña",
         required=True,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "form-control", "placeholder":"Repita  su contraseña"}),
         strip=False,
         help_text=_("Ingresa la misma contraseña que antes, para verificar."),
     )
@@ -83,6 +94,19 @@ class PasswordForm(SetPasswordForm):
     }
 
 class LoginForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        placeholders = {
+            "username": "Ingrese su usuario o correo",
+            "password": "Ingrese su contraseña",
+        }
+
+        for field in ["username", "password"]:
+            self.fields[field].widget.attrs.update({
+                "class": "form-control",
+                "placeholder": placeholders[field],
+            })
     error_messages = {
         "invalid_login": _(
             "Por favor ingresa un nombre de usuario y contraseña correctos, asegúrate de que estén bien "
