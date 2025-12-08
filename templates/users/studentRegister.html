@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block content %}
+{% load static %}
 
 <style>
     main {
@@ -128,7 +129,7 @@
     <div class="container">
         <div class="footer-content1">
             <div>
-                <img src="img/IconoLetras.png" alt="Umi★Go" class="footer-logo">
+                <img src="{% static 'css/IconoLetras.png' %}" alt="Umi★Go" class="footer-logo">
             </div>
             
             <div class="footer-links">

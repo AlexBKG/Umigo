@@ -29,9 +29,9 @@ class CustomUserCreationForm(UserCreationForm):
         super().__init__(*args, **kwargs)
         
         placeholders = {
-        "first_name": "Ingrese su nombre",
-        "last_name": "Ingrese su apellido", 
-        "email": "Ingrese su correo electrónico"
+        "first_name": "Nombre",
+        "last_name": "Apellido", 
+        "email": "Correo electrónico"
     }
         
         
@@ -46,13 +46,13 @@ class CustomUserCreationForm(UserCreationForm):
         label="Contraseña",
         required=True,
         strip=False,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "form-control", "placeholder":"Ingrese su contraseña"  }),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "form-control", "placeholder":"Contraseña"  }),
         
     )
     password2 = forms.CharField(
         label="Confirmar Contraseña",
         required=True,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "form-control", "placeholder":"Repita  su contraseña"}),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "form-control", "placeholder":"Confirmación"}),
         strip=False,
         help_text=_("Ingresa la misma contraseña que antes, para verificar."),
     )
@@ -86,6 +86,16 @@ class LandlordCreationForm(forms.ModelForm):
     class Meta:
         model = Landlord
         fields = ["national_id", "id_url"]
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["national_id"].widget.attrs.update({
+            "class": "form-control",
+            "placeholder": "Ingrese su documento",
+        })
+        self.fields["id_url"].widget.attrs.update({
+            "class": "btn btn-upload",
+        })
 
 class PasswordForm(SetPasswordForm):
     error_messages = {

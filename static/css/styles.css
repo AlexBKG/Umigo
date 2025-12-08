@@ -586,6 +586,27 @@
             color: white;
         }
 
+        .btn-upload {
+            background-color: var(--primary-orange);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-upload:hover {
+            background-color: #e55a2b;
+            color: white;
+        }
+        
+        .btn-upload i {
+            font-size: 1.2rem;
+        }
+
 
 
 
