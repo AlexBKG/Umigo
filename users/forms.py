@@ -52,7 +52,7 @@ class CustomUserCreationForm(UserCreationForm):
     password2 = forms.CharField(
         label="Confirmar Contraseña",
         required=True,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "form-control", "placeholder":"Repita  su contraseña"}),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "form-control", "placeholder":"Repita su contraseña"}),
         strip=False,
         help_text=_("Ingresa la misma contraseña que antes, para verificar."),
     )
