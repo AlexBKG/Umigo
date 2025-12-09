@@ -3,10 +3,10 @@
 set -e
 
 echo "Waiting for MySQL..."
-while ! mysqladmin ping -h"$DB_HOST" --silent; do
+while ! nc -z db 3306; do
   sleep 1
 done
-echo "MySQL is ready."
+echo "MySQL is up."
 
 echo "Collecting static files..."
 python manage.py collectstatic --noinput

@@ -3,7 +3,7 @@ services:
     image: mysql:8.0
     container_name: umigo_db
     env_file:
-      - .env
+      - .env.dev
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
@@ -12,7 +12,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql_data_dev:/var/lib/mysql
       - ./docker/mysql:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -23,10 +23,10 @@ services:
   web:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: umigo_web
     env_file:
-      - .env
+      - .env.dev
     depends_on:
       db:
         condition: service_healthy
@@ -36,5 +36,5 @@ services:
       - "8000:8000"     
 
 volumes:
-  mysql_data:
-  media:
+  mysql_data_dev:
+  media_dev:
