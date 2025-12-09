@@ -3,60 +3,185 @@
 {% block title %}Mis publicaciones{% endblock %}
 
 {% block content %}
-
+{% load static %}
 {% load userTags %}
+
+<style>
+    main {
+        background-color: #e8e8e8;
+    }
+
+    .landlord-listings-section {
+        background-color: #e8e8e8;
+        padding: 40px 0 80px;
+    }
+
+    .landlord-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+
+    .landlord-title {
+        color: #1a4d5c;
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .btn-create-listing {
+        background-color: #ff6b35;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 10px 30px;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .btn-create-listing:hover {
+        background-color: #e55a2b;
+        color: white;
+    }
+
+    .card-listings {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+
+    .table-landlord {
+        margin-bottom: 0;
+    }
+
+    .table-landlord thead {
+        background-color: #f5f5f5;
+    }
+
+    .table-landlord th {
+        color: #1a4d5c;
+        font-weight: 600;
+        border-bottom: none;
+    }
+
+    .table-landlord td {
+        vertical-align: middle;
+    }
+
+    .listing-photo {
+        max-width: 90px;
+        height: auto;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+
+    .badge-available {
+        background-color: #28a745;
+    }
+
+    .badge-unavailable {
+        background-color: #dc3545;
+    }
+
+    .action-buttons .btn {
+        margin-right: 4px;
+        margin-bottom: 4px;
+    }
+
+    @media (max-width: 768px) {
+        .landlord-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+    }
+</style>
+
 {% if request.user|inGroup:"Landlords" %}
+<section class="landlord-listings-section">
+    <div class="container">
+        <div class="landlord-header">
+            <h2 class="landlord-title">Mis arriendos</h2>
+            <a href="{% url 'listings:listing_create' %}" class="btn btn-create-listing">
+                Crear nuevo arriendo
+            </a>
+        </div>
 
-  <h2>Mis arriendos</h2>
-  <a href="{% url 'listings:listing_create' %}">Crear un nuevo arriendo</a>
-    <table border="1" cellspacing="0" cellpadding="4">
-    <tr>
-        <th>Ubicación</th>
-        <th>Foto</th>
-        <th>Precio</th>
-        <th>Disponible</th>
-        <th>Vistas</th>
-        <th>Acciones</th>
-    </tr>
-
-    {% for l in object_list %}
-    <tr>
-        <td>{{ l.location_text }}</td>
-
-        <td>
-            {% with first_photo=l.photos.first %}
-                {% if first_photo %}
-                    <img src="{{ first_photo.image.url }}"
-                        style="max-width:90px; height:auto; border:1px solid #ccc;">
-                {% else %}
-                    <span style="color:#777;">Sin foto</span>
-                {% endif %}
-            {% endwith %}
-        </td>
-
-        <td>${{ l.price }}</td>
-        <td>{{ l.available|yesno:"Sí,No" }}</td>
-        <td>{{ l.views }}</td>
-
-        <td>
-            <a href="{% url 'listings:listing_update' l.pk %}">Editar</a> |
-
-            <form action="{% url 'listings:listing_toggle' l.pk %}" method="post" style="display:inline">
-                {% csrf_token %}
-                <button type="submit">
-                    {% if l.available %}Establecer como no disponible{% else %}Establecer como disponible{% endif %}
-                </button>
-            </form>
-
-            <a href="{% url 'listings:listing_delete' l.pk %}">Eliminar</a> |
-            <a href="{% url 'listings:listing_detail' l.pk %}">Ver detalles</a>
-        </td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="6">No tienes arriendos todavía.</td></tr>
-    {% endfor %}
-    </table>
-
+        <div class="card card-listings">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle table-landlord mb-0">
+                        <thead>
+                            <tr>
+                                <th>Ubicación</th>
+                                <th>Foto</th>
+                                <th>Precio</th>
+                                <th>Estado</th>
+                                <th>Vistas</th>
+                                <th class="text-end">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for l in object_list %}
+                            <tr>
+                                <td>{{ l.location_text }}</td>
+                                <td>
+                                    {% with first_photo=l.photos.first %}
+                                        {% if first_photo %}
+                                            <img src="{{ first_photo.image.url }}" class="listing-photo" alt="Foto del arriendo">
+                                        {% else %}
+                                            <span class="text-muted">Sin foto</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>${{ l.price }}</td>
+                                <td>
+                                    {% if l.available %}
+                                        <span class="badge badge-available">Disponible</span>
+                                    {% else %}
+                                        <span class="badge badge-unavailable">No disponible</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ l.views }}</td>
+                                <td class="text-end">
+                                    <div class="action-buttons d-flex flex-wrap justify-content-end">
+                                        <a href="{% url 'listings:listing_detail' l.pk %}" class="btn btn-sm btn-outline-secondary">
+                                            Ver
+                                        </a>
+                                        <a href="{% url 'listings:listing_update' l.pk %}" class="btn btn-sm btn-outline-primary">
+                                            Editar
+                                        </a>
+                                        <form action="{% url 'listings:listing_toggle' l.pk %}" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-warning">
+                                                {% if l.available %}
+                                                    Marcar como no disponible
+                                                {% else %}
+                                                    Marcar como disponible
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                        <a href="{% url 'listings:listing_delete' l.pk %}" class="btn btn-sm btn-outline-danger">
+                                            Eliminar
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    No tienes arriendos todavía. 
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 {% endif %}
 
 {% endblock %}
