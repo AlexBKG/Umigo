@@ -60,3 +60,15 @@ venv.bak/
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
+
+# Testing #
+test_media/
+.pytest_cache/
+.coverage.*
+coverage-badge.svg
+.tox/
+
+# Database verification scripts (temporary, not for production)
+check_admin.py
+check_constraints.py
+verify_databases.py

@@ -135,6 +135,16 @@ class Comment(models.Model):
         managed = False
         db_table = 'comment'
         ordering = ['-created_at']
+    
+    def clean(self):
+        """
+        Validación: Un reply debe estar en el mismo listing que su parent.
+        """
+        super().clean()
+        if self.parent and self.parent.listing != self.listing:
+            raise ValidationError(
+                'Un reply debe estar en el mismo listing que su comentario padre.'
+            )
 
     def __str__(self):
         return f'Comment {self.id} on listing {self.listing_id}'
