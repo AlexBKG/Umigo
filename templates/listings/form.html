@@ -1,278 +1,462 @@
 {% extends "authenticatedLayout.html" %}
 
-{% block title %}{{ view.object|default:"Crear arriendo" }}{% endblock %}
+{% block title %}{% if view.object %}Editar arriendo{% else %}Crear arriendo{% endif %}{% endblock %}
 
 {% block content %}
-
+{% load static %}
 {% load userTags %}
-{% if request.user|inGroup:"Landlords" %}              
-                
-    <h2>{% if view.object %}Editar arriendo{% else %}Crear arriendo{% endif %}</h2>
 
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {{ form.as_p }}
+{% if request.user|inGroup:"Landlords" %}
 
-        <p>
-            <label for="id_images">Fotos del arriendo (1 a 5):</label>
-            <input
-                type="file"
-                id="id_images"
-                name="images"
-                multiple
-                accept="image/*"
-                {% if not form.instance.pk %}required{% endif %}
-            >
-            <br>
-            <small>
-                Puedes seleccionar varias imágenes manteniendo presionada la tecla Ctrl (o Cmd en Mac).
-            </small>
-        </p>
+<style>
+    main {
+        background-color: #e8e8e8;
+    }
 
-        {# Si estamos editando (el Listing ya existe), mostrar fotos actuales #}
-        {% if form.instance.pk %}
-            <h3>Fotos actuales</h3>
-            <div style="display:flex; flex-wrap:wrap; gap:10px;">
-                {% for photo in form.instance.photos.all %}
-                    <div style="border:1px solid #ccc; padding:4px; text-align:center;">
-                        <img src="{{ photo.image.url }}" alt="Foto del arriendo"
-                            style="max-width:120px; max-height:120px; object-fit:cover;"><br>
-                        <label style="font-size:12px;">
-                            <input type="checkbox" name="delete_photos" value="{{ photo.id }}">
-                            Eliminar
-                        </label>
+    .listing-form-section {
+        background-color: #e8e8e8;
+        padding: 40px 0 80px;
+    }
+
+    .listing-form-card {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .listing-form-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .listing-form-title {
+        color: #1a4d5c;
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .btn-save-listing {
+        background-color: #ff6b35;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        padding: 10px 30px;
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .btn-save-listing:hover {
+        background-color: #e55a2b;
+        color: white;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #1a4d5c;
+    }
+
+    .form-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .photo-preview-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .photo-preview-item {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 6px;
+        text-align: center;
+        background-color: #ffffff;
+    }
+
+    .photo-preview-item img {
+        max-width: 120px;
+        max-height: 120px;
+        object-fit: cover;
+        border-radius: 4px;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .map-wrapper {
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    #map {
+        height: 400px;
+        max-width: 100%;
+    }
+
+    @media (max-width: 768px) {
+        .listing-form-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+    }
+</style>
+
+<section class="listing-form-section">
+    <div class="container">
+        <div class="listing-form-header">
+            <h2 class="listing-form-title">
+                {% if view.object %}Editar arriendo{% else %}Crear arriendo{% endif %}
+            </h2>
+        </div>
+
+        <div class="card listing-form-card">
+            <div class="card-body">
+                <form id="listing-form" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        <div class="col-lg-4 col-md-6">
+                            <label class="form-label" for="id_price">Precio</label>
+                            {{ form.price }}
+                        </div>
+                        <div class="col-lg-8 col-md-6">
+                            <label class="form-label" for="id_location_text">Dirección o ubicación</label>
+                            {{ form.location_text }}
+                            <div class="form-text">
+                                Escribe la dirección aproximada o el nombre del lugar.
+                            </div>
+                        </div>
                     </div>
-                {% empty %}
-                    <p>No hay fotos guardadas.</p>
-                {% endfor %}
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6 col-lg-4">
+                            <label class="form-label" for="id_lat">Latitud</label>
+                            {{ form.lat }}
+                            <div class="form-text">Latitud: -90 a 90 (Norte-Sur).</div>
+                        </div>
+                        <div class="col-md-6 col-lg-4">
+                            <label class="form-label" for="id_lng">Longitud</label>
+                            {{ form.lng }}
+                            <div class="form-text">Longitud: -180 a 180 (Este-Oeste).</div>
+                        </div>
+                        <div class="col-md-12 col-lg-4">
+                            <label class="form-label" for="id_zone">Zona</label>
+                            {{ form.zone }}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-4">
+                            <label class="form-label" for="id_rooms">Habitaciones</label>
+                            {{ form.rooms }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="id_bathrooms">Baños</label>
+                            {{ form.bathrooms }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="id_shared_with_people">
+                                Personas con las que se comparte
+                            </label>
+                            {{ form.shared_with_people }}
+                            <div class="form-text">
+                                Número de personas con las que se comparte (0 si es privado).
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label" for="id_utilities_price">Precio de servicios</label>
+                            {{ form.utilities_price }}
+                        </div>
+                        <div class="col-md-6 d-flex align-items-center">
+                            <div class="form-check mt-3">
+                                {{ form.available }}
+                                <label class="form-check-label ms-1" for="id_available">
+                                    Disponible
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-2" style="color:#1a4d5c;">Fotos del arriendo</h5>
+                    <div class="mb-2">
+                        <label class="form-label" for="id_images">Selecciona entre 1 y 5 fotos</label>
+                        <input
+                            type="file"
+                            id="id_images"
+                            name="images"
+                            multiple
+                            accept="image/*"
+                            class="form-control"
+                            {% if not form.instance.pk %}required{% endif %}
+                        >
+                        <div class="form-text">
+                            Puedes seleccionar varias imágenes manteniendo presionada la tecla
+                            Ctrl (o Cmd en Mac).
+                        </div>
+                    </div>
+
+                    {% if form.instance.pk %}
+                        <h6 class="mt-3 mb-2" style="color:#1a4d5c;">Fotos actuales</h6>
+                        <div class="photo-preview-wrapper">
+                            {% for photo in form.instance.photos.all %}
+                                <div class="photo-preview-item">
+                                    <img src="{{ photo.image.url }}" alt="Foto del arriendo">
+                                    <label style="font-size:12px;">
+                                        <input type="checkbox" name="delete_photos" value="{{ photo.id }}">
+                                        Eliminar
+                                    </label>
+                                </div>
+                            {% empty %}
+                                <p class="text-muted mb-0">No hay fotos guardadas.</p>
+                            {% endfor %}
+                        </div>
+                        <p class="form-text mt-1">
+                            Puedes marcar fotos para eliminarlas y, si lo deseas, subir nuevas
+                            (el anuncio debe tener siempre entre 1 y 5 fotos en total).
+                        </p>
+                    {% endif %}
+
+                    <hr class="my-4">
+
+                    <h5 class="mb-2" style="color:#1a4d5c;">Asistente de ubicación dinámico</h5>
+                    <div class="row g-2 align-items-center mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="id_location_search">Buscar dirección o lugar</label>
+                            <input type="text" id="id_location_search" class="form-control">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" id="id_location_search_btn"
+                                    class="btn btn-outline-secondary w-100 mt-3 mt-md-0">
+                                Buscar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="map-wrapper mb-4">
+                        <div id="map"></div>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-save-listing">
+                            Guardar
+                        </button>
+                    </div>
+                </form>
             </div>
-            <p style="font-size:12px; margin-top:4px;">
-                Puedes marcar fotos para eliminarlas y, si lo deseas, subir nuevas (siempre entre 1 y 5 en total).
-            </p>
-        {% endif %}
-        
-        <h3>Asistente de ubicación dinámico</h3>
-        <p>
-            <label for="id_location_search">Buscar dirección o lugar:</label>
-            <input type="text" id="id_location_search" style="width: 300px;">
-            <button type="button" id="id_location_search_btn">Buscar</button>
-        </p>
+        </div>
+    </div>
+</section>
 
-        <div id="map" style="height: 400px; max-width: 600px; border: 1px solid #ccc;"></div>
-
-        <button type="submit">Guardar</button>
-    </form>
-
-    {# Leaflet CSS/JS #}
-    <link
+<link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const latInput = document.getElementById('id_lat');
-        const lngInput = document.getElementById('id_lng');
-        const locationTextInput = document.getElementById('id_location_text');
-        const searchInput = document.getElementById('id_location_search');
-        const searchBtn = document.getElementById('id_location_search_btn');
-        const zoneSelect = document.getElementById('id_zone');
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const latInput = document.getElementById('id_lat');
+    const lngInput = document.getElementById('id_lng');
+    const locationTextInput = document.getElementById('id_location_text');
+    const searchInput = document.getElementById('id_location_search');
+    const searchBtn = document.getElementById('id_location_search_btn');
+    const zoneSelect = document.getElementById('id_zone');
 
-        // Bogotá por defecto
-        const initialLat = latInput.value ? parseFloat(latInput.value) : 4.65;
-        const initialLng = lngInput.value ? parseFloat(lngInput.value) : -74.06;
+    const initialLat = latInput.value ? parseFloat(latInput.value) : 4.65;
+    const initialLng = lngInput.value ? parseFloat(lngInput.value) : -74.06;
 
-        const map = L.map('map').setView([initialLat, initialLng], 12);
+    const map = L.map('map').setView([initialLat, initialLng], 12);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-        let marker = null;
+    let marker = null;
 
-        function setMarker(lat, lng) {
-            if (marker) {
-                marker.setLatLng([lat, lng]);
-            } else {
-                marker = L.marker([lat, lng]).addTo(map);
-            }
-            latInput.value = lat.toFixed(6);
-            lngInput.value = lng.toFixed(6);
+    function setMarker(lat, lng) {
+        if (marker) {
+            marker.setLatLng([lat, lng]);
+        } else {
+            marker = L.marker([lat, lng]).addTo(map);
         }
+        latInput.value = lat.toFixed(6);
+        lngInput.value = lng.toFixed(6);
+    }
 
-        const ZONE_KEYWORDS = {
-            "usaquén": "Usaquén",
-            "usaquen": "Usaquén",
-            "chapinero": "Chapinero",
-            "santa fe": "Santa Fe",
-            "san cristóbal": "San Cristóbal",
-            "san cristobal": "San Cristóbal",
-            "usme": "Usme",
-            "tunjuelito": "Tunjuelito",
-            "bosa": "Bosa",
-            "kennedy": "Kennedy",
-            "fontibón": "Fontibón",
-            "fontibon": "Fontibón",
-            "engativá": "Engativá",
-            "engativa": "Engativá",
-            "suba": "Suba",
-            "barrios unidos": "Barrios Unidos",
-            "teusaquillo": "Teusaquillo",
-            "los mártires": "Los Mártires",
-            "los martires": "Los Mártires",
-            "antonio nariño": "Antonio Nariño",
-            "antonio narino": "Antonio Nariño",
-            "puente aranda": "Puente Aranda",
-            "la candelaria": "La Candelaria",
-            "rafael uribe uribe": "Rafael Uribe Uribe",
-            "ciudad bolívar": "Ciudad Bolívar",
-            "ciudad bolivar": "Ciudad Bolívar",
-            "sumapaz": "Sumapaz"
-        };
+    const ZONE_KEYWORDS = {
+        "usaquén": "Usaquén",
+        "usaquen": "Usaquén",
+        "chapinero": "Chapinero",
+        "santa fe": "Santa Fe",
+        "san cristóbal": "San Cristóbal",
+        "san cristobal": "San Cristóbal",
+        "usme": "Usme",
+        "tunjuelito": "Tunjuelito",
+        "bosa": "Bosa",
+        "kennedy": "Kennedy",
+        "fontibón": "Fontibón",
+        "fontibon": "Fontibón",
+        "engativá": "Engativá",
+        "engativa": "Engativá",
+        "suba": "Suba",
+        "barrios unidos": "Barrios Unidos",
+        "teusaquillo": "Teusaquillo",
+        "los mártires": "Los Mártires",
+        "los martires": "Los Mártires",
+        "antonio nariño": "Antonio Nariño",
+        "antonio narino": "Antonio Nariño",
+        "puente aranda": "Puente Aranda",
+        "la candelaria": "La Candelaria",
+        "rafael uribe uribe": "Rafael Uribe Uribe",
+        "ciudad bolívar": "Ciudad Bolívar",
+        "ciudad bolivar": "Ciudad Bolívar",
+        "sumapaz": "Sumapaz"
+    };
 
-        function autoSelectZoneFromAddress(address) {
-            if (!zoneSelect || !address) return;
+    function autoSelectZoneFromAddress(address) {
+        if (!zoneSelect || !address) return;
 
-            // Construimos un string grande con varios campos de dirección
-            const parts = [
-                address.suburb,
-                address.neighbourhood,
-                address.city_district,
-                address.town,
-                address.city,
-                address.state
-            ].filter(Boolean);
+        const parts = [
+            address.suburb,
+            address.neighbourhood,
+            address.city_district,
+            address.town,
+            address.city,
+            address.state
+        ].filter(Boolean);
 
-            const fullAddr = parts.join(" ").toLowerCase();
+        const fullAddr = parts.join(" ").toLowerCase();
 
-            let matchedZoneName = null;
-            for (const key in ZONE_KEYWORDS) {
-                if (fullAddr.includes(key)) {
-                    matchedZoneName = ZONE_KEYWORDS[key];
-                    break;
-                }
-            }
-            if (!matchedZoneName) {
-                // No se encontró nada que coincida
-                return;
-            }
-
-            for (const option of zoneSelect.options) {
-                if (!option.value) continue;
-                if (option.text.trim().toLowerCase() === matchedZoneName.toLowerCase()) {
-                    zoneSelect.value = option.value;
-                    break;
-                }
+        let matchedZoneName = null;
+        for (const key in ZONE_KEYWORDS) {
+            if (fullAddr.includes(key)) {
+                matchedZoneName = ZONE_KEYWORDS[key];
+                break;
             }
         }
+        if (!matchedZoneName) return;
 
-        function autoSelectZoneFromText(text) {
-            if (!zoneSelect || !text) return;
-            const lowered = text.toLowerCase();
-
-            for (const option of zoneSelect.options) {
-                if (!option.value) continue; // saltar opción vacía
-                const label = option.text.toLowerCase();
-
-                // ejemplo: "Teusaquillo - Bogotá" → tomamos "teusaquillo"
-                const mainName = label.split('-')[0].trim();
-
-                if (lowered.includes(mainName)) {
-                    zoneSelect.value = option.value;
-                    break;
-                }
+        for (const option of zoneSelect.options) {
+            if (!option.value) continue;
+            if (option.text.trim().toLowerCase() === matchedZoneName.toLowerCase()) {
+                zoneSelect.value = option.value;
+                break;
             }
         }
+    }
 
-        function reverseGeocode(lat, lng) {
-            const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2'
-                        + '&lat=' + encodeURIComponent(lat)
-                        + '&lon=' + encodeURIComponent(lng)
-                        + '&zoom=16&addressdetails=1';
+    function autoSelectZoneFromText(text) {
+        if (!zoneSelect || !text) return;
+        const lowered = text.toLowerCase();
 
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.display_name) {
-                        if (locationTextInput) {
-                            locationTextInput.value = data.display_name;
-                        }
-                        autoSelectZoneFromText(data.display_name);
+        for (const option of zoneSelect.options) {
+            if (!option.value) continue;
+            const label = option.text.toLowerCase();
+            const mainName = label.split('-')[0].trim();
+            if (lowered.includes(mainName)) {
+                zoneSelect.value = option.value;
+                break;
+            }
+        }
+    }
+
+    function reverseGeocode(lat, lng) {
+        const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2'
+                    + '&lat=' + encodeURIComponent(lat)
+                    + '&lon=' + encodeURIComponent(lng)
+                    + '&zoom=16&addressdetails=1';
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.display_name) {
+                    if (locationTextInput) {
+                        locationTextInput.value = data.display_name;
                     }
-                    if (data && data.address) {
-                        autoSelectZoneFromAddress(data.address);
-                    }
-                })
-                .catch(err => {
-                    console.error('Reverse geocode error:', err);
-                });
-        }
+                    autoSelectZoneFromText(data.display_name);
+                }
+                if (data && data.address) {
+                    autoSelectZoneFromAddress(data.address);
+                }
+            })
+            .catch(err => {
+                console.error('Reverse geocode error:', err);
+            });
+    }
 
-        // Si ya hay lat/lng (editar), pon el marker
-        if (latInput.value && lngInput.value) {
-            setMarker(initialLat, initialLng);
-        }
+    if (latInput.value && lngInput.value) {
+        setMarker(initialLat, initialLng);
+    }
 
-        // Permitir elegir punto haciendo clic en el mapa
-        map.on('click', function (e) {
-            setMarker(e.latlng.lat, e.latlng.lng);
-            reverseGeocode(e.latlng.lat, e.latlng.lng);
-        });
-
-        // Búsqueda por texto usando Nominatim
-        searchBtn.addEventListener('click', function () {
-            const q = searchInput.value.trim();
-            if (!q) return;
-
-            const url = 'https://nominatim.openstreetmap.org/search?format=jsonv2'
-                        + '&limit=1&q=' + encodeURIComponent(q);
-
-            fetch(url)
-                .then(response => response.json())
-                .then(results => {
-                    if (results.length > 0) {
-                        const place = results[0];
-                        const lat = parseFloat(place.lat);
-                        const lng = parseFloat(place.lon);
-
-                        map.setView([lat, lng], 16);
-                        setMarker(lat, lng);
-
-                        if (locationTextInput && !locationTextInput.value) {
-                            locationTextInput.value = place.display_name;
-                        }
-                        if (place.address) {
-                            autoSelectZoneFromAddress(place.address);
-                        }
-                    } else {
-                        alert('No results found for that address.');
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert('Error searching location.');
-                });
-        });
+    map.on('click', function (e) {
+        setMarker(e.latlng.lat, e.latlng.lng);
+        reverseGeocode(e.latlng.lat, e.latlng.lng);
     });
-    </script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('listing-form');
-        if (!form) return;
 
-        form.addEventListener('submit', function(e) {
-            const checked = form.querySelectorAll('input[name="delete_photos"]:checked');
-            if (checked.length > 0) {
-                const ok = confirm(`Vas a eliminar ${checked.length} foto(s). ¿Quieres continuar?`);
-                if (!ok) {
-                    e.preventDefault();
+    searchBtn.addEventListener('click', function () {
+        const q = searchInput.value.trim();
+        if (!q) return;
+
+        const url = 'https://nominatim.openstreetmap.org/search?format=jsonv2'
+                    + '&limit=1&q=' + encodeURIComponent(q);
+
+        fetch(url)
+            .then(response => response.json())
+            .then(results => {
+                if (results.length > 0) {
+                    const place = results[0];
+                    const lat = parseFloat(place.lat);
+                    const lng = parseFloat(place.lon);
+
+                    map.setView([lat, lng], 16);
+                    setMarker(lat, lng);
+
+                    if (locationTextInput && !locationTextInput.value) {
+                        locationTextInput.value = place.display_name;
+                    }
+                    if (place.address) {
+                        autoSelectZoneFromAddress(place.address);
+                    }
+                } else {
+                    alert('No se encontraron resultados para esa dirección.');
                 }
-            }
-        });
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error al buscar la ubicación.');
+            });
     });
-    </script>
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('listing-form');
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+        const checked = form.querySelectorAll('input[name="delete_photos"]:checked');
+        if (checked.length > 0) {
+            const ok = confirm(`Vas a eliminar ${checked.length} foto(s). ¿Quieres continuar?`);
+            if (!ok) {
+                e.preventDefault();
+            }
+        }
+    });
+});
+</script>
+
 {% endif %}
-
 {% endblock %}
