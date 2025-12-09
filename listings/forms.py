@@ -16,7 +16,6 @@ class ListingForm(forms.ModelForm):
             'shared_with_people',
             'utilities_price',
             'available',
-            # NO pongas 'images' aquí
         ]
         labels = {
             'price': 'Precio',
@@ -31,6 +30,33 @@ class ListingForm(forms.ModelForm):
             'available': 'Disponible',
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Campos tipo texto/número
+        text_like = [
+            'price', 'location_text', 'lat', 'lng',
+            'rooms', 'bathrooms', 'shared_with_people',
+            'utilities_price',
+        ]
+        for name in text_like:
+            if name in self.fields:
+                self.fields[name].widget.attrs.update({
+                    'class': 'form-control',
+                })
+
+        # Select de zona
+        if 'zone' in self.fields:
+            self.fields['zone'].widget.attrs.update({
+                'class': 'form-select',
+            })
+
+        # Checkbox de disponible
+        if 'available' in self.fields:
+            self.fields['available'].widget.attrs.update({
+                'class': 'form-check-input',
+            })
+
 
 class CommentForm(forms.ModelForm):
     parent = forms.ModelChoiceField(
@@ -38,6 +64,7 @@ class CommentForm(forms.ModelForm):
         required=False,
         widget=forms.HiddenInput
     )
+
     class Meta:
         model = Comment
         fields = ['text']
@@ -65,3 +92,4 @@ class ReviewForm(forms.ModelForm):
         labels = {
             'text': 'Reseña'
         }
+

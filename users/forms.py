@@ -46,7 +46,10 @@ class CustomUserCreationForm(UserCreationForm):
         label="Contraseña",
         required=True,
         strip=False,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "form-control", "placeholder":"Contraseña"  }),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "class": "form-control", "placeholder":"Contraseña", "minlength": "8","maxlength": "44",
+                                          "pattern": r"(?=.*[a-z])(?=.*[A-Z])(?=.*[^\w]).{8,}","title": "Debe tener al menos 8 caracteres, una mayúscula, una minúscula y un carácter especial.",
+                                          
+                                          }),
         
     )
     password2 = forms.CharField(
