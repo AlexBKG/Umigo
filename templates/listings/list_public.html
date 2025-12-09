@@ -3,40 +3,272 @@
 {% block title %}Publicaciones - Umigo{% endblock %}
 
 {% block content %}
-
+{% load static %}
 {% load userTags %}
+
 {% if request.user|inGroup:"Students" or request.user.is_superuser %}
 
-<h2>Arriendos disponibles</h2>
+<style>
+    main {
+        background-color: #f5f5f5;
+    }
 
-<ul>
-{% for l in object_list %}
-    <li style="margin-bottom: 20px; display:flex; align-items:center; gap:15px;">
+    .catalog-section {
+        padding: 30px 0 60px;
+    }
 
-        {% with first_photo=l.photos.first %}
-            {% if first_photo %}
-                <img src="{{ first_photo.image.url }}"
-                     alt="Foto de {{ l.location_text }}"
-                     style="max-width:120px; height:auto; border:1px solid #999;">
-            {% endif %}
-        {% endwith %}
+    .filters-card {
+        background-color: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        padding: 20px;
+        height: 100%;
+    }
 
-        <div>
-            <a href="{% url 'listings:listing_detail' l.pk %}">
-                {{ l.location_text }} – ${{ l.price }}
-            </a>
+    .filters-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #1a4d5c;
+        margin-bottom: 15px;
+    }
 
-            <br>
-            (Cuartos: {{ l.rooms }}, Baños: {{ l.bathrooms }})
+    .btn-umigo-primary {
+        background-color: #ff6b35;
+        color: #fff;
+        border-radius: 25px;
+        border: none;
+        font-weight: 600;
+    }
+
+    .btn-umigo-primary:hover {
+        background-color: #e55a2b;
+        color: #fff;
+    }
+
+    .listing-card {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        overflow: hidden;
+        background-color: #ffffff;
+    }
+
+    .listing-card img {
+        height: 200px;
+        width: 100%;
+        object-fit: cover;
+    }
+
+    .listing-title {
+        font-weight: 600;
+        color: #1a4d5c;
+        font-size: 1rem;
+    }
+
+    .listing-price {
+        color: #ff6b35;
+        font-weight: 700;
+    }
+
+    .badge-available {
+        background-color: #28a745;
+    }
+
+    .filter-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #1a4d5c;
+        margin-top: 10px;
+        margin-bottom: 4px;
+    }
+
+    .filter-small {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+</style>
+
+<section class="catalog-section">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Sidebar filtros -->
+            <div class="col-lg-3">
+                <form method="get" class="filters-card">
+                    <h5 class="filters-title">Filtra tu búsqueda</h5>
+
+                    <label class="filter-label" for="search">Buscar</label>
+                    <div class="input-group mb-2">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" id="search" name="q"
+                               class="form-control"
+                               placeholder="Dirección o zona"
+                               value="{{ current_filters.q }}">
+                    </div>
+
+                    <label class="filter-label">Rango de precio</label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <input type="number" name="price_min" class="form-control"
+                                   placeholder="Mín"
+                                   value="{{ current_filters.price_min }}">
+                        </div>
+                        <div class="col-6">
+                            <input type="number" name="price_max" class="form-control"
+                                   placeholder="Máx"
+                                   value="{{ current_filters.price_max }}">
+                        </div>
+                    </div>
+                    <div class="filter-small mt-1">
+                        Deja vacío un campo si no quieres limitar ese extremo.
+                    </div>
+
+                    <label class="filter-label mt-3">Ubicación preferida</label>
+                    <div class="filter-small mb-1">Filtra por zona.</div>
+                    <div class="mb-2" style="max-height: 180px; overflow-y: auto;">
+                        {% for z in zones %}
+                            <div class="form-check">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       name="zone"
+                                       id="zone{{ z.id }}"
+                                       value="{{ z.id }}"
+                                       {% if z.id|stringformat:"s" in current_filters.zone_ids %}checked{% endif %}>
+                                <label class="form-check-label" for="zone{{ z.id }}">
+                                    {{ z.name }} - {{ z.city }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <label class="filter-label">Características básicas</label>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <input type="number" min="1" name="rooms_min" class="form-control"
+                                   placeholder="Hab. mín."
+                                   value="{{ current_filters.rooms_min }}">
+                        </div>
+                        <div class="col-6">
+                            <input type="number" min="1" name="baths_min" class="form-control"
+                                   placeholder="Baños mín."
+                                   value="{{ current_filters.baths_min }}">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-umigo-primary w-100 mt-2">
+                        Aplicar filtros
+                    </button>
+
+                    <a href="{% url 'listings:listing_public_list' %}"
+                       class="btn btn-link w-100 text-center mt-1"
+                       style="font-size: 0.9rem;">
+                        Limpiar filtros
+                    </a>
+                </form>
+            </div>
+
+            <!-- Grid resultados -->
+            <div class="col-lg-9">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">Arriendos disponibles</h5>
+                    <form method="get" class="d-flex align-items-center">
+                        <!-- mantener filtros al cambiar orden -->
+                        <input type="hidden" name="q" value="{{ current_filters.q }}">
+                        <input type="hidden" name="price_min" value="{{ current_filters.price_min }}">
+                        <input type="hidden" name="price_max" value="{{ current_filters.price_max }}">
+                        <input type="hidden" name="rooms_min" value="{{ current_filters.rooms_min }}">
+                        <input type="hidden" name="baths_min" value="{{ current_filters.baths_min }}">
+                        {% for zid in current_filters.zone_ids %}
+                            <input type="hidden" name="zone" value="{{ zid }}">
+                        {% endfor %}
+
+                        <label class="me-2 mb-0" style="font-size:0.9rem;">Ordenar por:</label>
+                        <select name="order" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="recent" {% if current_filters.order == 'recent' %}selected{% endif %}>
+                                Más recientes
+                            </option>
+                            <option value="price_asc" {% if current_filters.order == 'price_asc' %}selected{% endif %}>
+                                Precio: menor a mayor
+                            </option>
+                            <option value="price_desc" {% if current_filters.order == 'price_desc' %}selected{% endif %}>
+                                Precio: mayor a menor
+                            </option>
+                        </select>
+                    </form>
+                </div>
+
+                {% if object_list %}
+                    <div class="row g-4">
+                        {% for l in object_list %}
+                            <div class="col-md-6 col-xl-4">
+                                <div class="listing-card h-100 d-flex flex-column">
+                                    {% with first_photo=l.photos.first %}
+                                        {% if first_photo %}
+                                            <img src="{{ first_photo.image.url }}"
+                                                 alt="Foto de {{ l.location_text }}">
+                                        {% else %}
+                                            <div style="height:200px; background:#ddd;"></div>
+                                        {% endif %}
+                                    {% endwith %}
+                                    <div class="p-3 d-flex flex-column flex-grow-1">
+                                        <div class="listing-title mb-1">
+                                            {{ l.location_text|truncatechars:50 }}
+                                        </div>
+                                        <div class="listing-price mb-1">
+                                            ${{ l.price }} COP
+                                        </div>
+                                        <div class="listing-meta mb-2" style="font-size:0.8rem;">
+                                            Zona: {{ l.zone.name }} - {{ l.zone.city }}<br>
+                                            Hab: {{ l.rooms }} · Baños: {{ l.bathrooms }}
+                                        </div>
+                                        <div class="mt-auto d-flex justify-content-between align-items-center">
+                                            <a href="{% url 'listings:listing_detail' l.pk %}"
+                                               class="btn btn-umigo-primary btn-sm">
+                                                Ver detalles
+                                            </a>
+                                            <span style="font-size:0.8rem; color:#6c757d;">
+                                                {{ l.views }} vistas
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if is_paginated %}
+                        <nav class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page='|cut:page_obj.number }}">
+                                            Anterior
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page='|cut:page_obj.number }}">
+                                            Siguiente
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted">No hay arriendos que coincidan con los filtros seleccionados.</p>
+                {% endif %}
+            </div>
         </div>
-
-    </li>
-{% empty %}
-    <li>No hay arriendos todavía.</li>
-{% endfor %}
-</ul>
-
+    </div>
+</section>
 
 {% endif %}
-
 {% endblock %}

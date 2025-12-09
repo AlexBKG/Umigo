@@ -160,12 +160,25 @@
                     </div>
                 </div>
 
-                <p class="listing-meta mb-2">
+                <p class="listing-meta mb-2 mt-2">
                     <strong>Popularidad:</strong> {{ object.popularity }}
                 </p>
 
-                {% if can_add_favorite or can_remove_favorite %}
+                {% if object.lat and object.lng %}
                     <hr>
+                    <div class="d-flex align-items-center mb-2">
+                        <strong class="me-2">Ubicación:</strong>
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ object.lat }},{{ object.lng }}"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="btn btn-umigo-primary">
+                            Ver en Google Maps
+                        </a>
+                    </div>
+                    <hr>
+                {% endif %}
+
+                {% if can_add_favorite or can_remove_favorite %}
                     <div class="d-flex align-items-center mb-2">
                         <strong class="me-2">Favoritos:</strong> {{ favorited_by }}
                     </div>
@@ -214,10 +227,22 @@
                 <div>
                     {% for comment in comments %}
                         <div class="comment-item">
-                            <div class="d-flex justify-content-between">
-                                <span class="comment-author">
-                                    {{ comment.author.get_full_name|default:comment.author.username }}
-                                </span>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="comment-author">
+                                        {{ comment.author.get_full_name|default:comment.author.username }}
+                                    </span>
+                                    {% if user.is_authenticated and user != comment.author and not comment.author.is_staff %}
+                                      {% if user.student_profile or user.landlord_profile %}
+                                        <button type="button"
+                                                class="btn btn-warning btn-sm ms-2"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#reportCommentUser{{ comment.id }}Modal">
+                                          🟡 Reportar Usuario
+                                        </button>
+                                      {% endif %}
+                                    {% endif %}
+                                </div>
                                 <span class="comment-date">
                                     {{ comment.created_at|date:"d/m/Y H:i" }}
                                 </span>
@@ -239,14 +264,27 @@
                                 <div class="mt-2 ms-3">
                                     {% for reply in comment.replies.all %}
                                         <div class="comment-item">
-                                            <div class="d-flex justify-content-between">
-                                                <span class="comment-author">
-                                                    {{ reply.author.get_full_name|default:reply.author.username }}
-                                                </span>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span class="comment-author">
+                                                        {{ reply.author.get_full_name|default:reply.author.username }}
+                                                    </span>
+                                                    {% if user.is_authenticated and user != reply.author and not reply.author.is_staff %}
+                                                      {% if user.student_profile or user.landlord_profile %}
+                                                        <button type="button"
+                                                                class="btn btn-warning btn-sm ms-2"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#reportReplyUser{{ reply.id }}Modal">
+                                                          🟡 Reportar Usuario
+                                                        </button>
+                                                      {% endif %}
+                                                    {% endif %}
+                                                </div>
                                                 <span class="comment-date">
                                                     {{ reply.created_at|date:"d/m/Y H:i" }}
                                                 </span>
                                             </div>
+
                                             <p class="mb-1">{{ reply.text|linebreaks }}</p>
 
                                             {% if user.is_authenticated and reply.author_id == user.id %}
@@ -268,11 +306,18 @@
                                       method="post" class="mt-2">
                                     {% csrf_token %}
                                     {{ comment_form.text.errors }}
-                                    {{ comment_form.text }}
+
+                                    <div class="mb-2">
+                                        {{ comment_form.text }}
+                                    </div>
+
                                     <input type="hidden" name="parent" value="{{ comment.id }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-primary mt-2">
-                                        Responder
-                                    </button>
+
+                                    <div>
+                                        <button type="submit" class="btn btn-umigo-primary">
+                                            Responder
+                                        </button>
+                                    </div>
                                 </form>
                             {% endif %}
                         </div>
@@ -359,18 +404,181 @@
     </div>
 </section>
 
-{# Modal para zoom de imagen #}
-<div class="modal fade" id="imageZoomModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-xl">
-    <div class="modal-content bg-dark">
-      <div class="modal-body p-0">
-        <img id="imageZoomModalImg" src="" alt="Imagen ampliada" class="modal-full-image">
+{% if user.is_authenticated and user.student_profile %}
+<div class="modal fade" id="reportListingModal" tabindex="-1" aria-labelledby="reportListingModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reportListingModalLabel">🔴 Reportar Publicación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
-              data-bs-dismiss="modal" aria-label="Close"></button>
+      <form method="post" action="{% url 'inquiries:report_listing' object.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        <div class="modal-body">
+          <p>¿Estás seguro de reportar esta publicación?</p>
+          <p><strong>{{ object.location_text }}</strong></p>
+
+          <div class="mb-3">
+            <label for="reportListingType" class="form-label">Tipo de reporte:</label>
+            <select class="form-select" id="reportListingType" name="report_type" required>
+              <option value="FRAUD">Fraude</option>
+              <option value="HARASSMENT">Acoso</option>
+              <option value="INAPPROPRIATE_LANGUAGE">Lenguaje inapropiado</option>
+              <option value="MISLEADING_CONTENT">Contenido engañoso</option>
+              <option value="OTHER" selected>Otro</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="reportListingReason" class="form-label">Motivo del reporte:</label>
+            <textarea class="form-control" id="reportListingReason" name="reason" rows="4" minlength="10" maxlength="255" required placeholder="Describe el motivo de tu reporte (mín. 10, máx. 255 caracteres)"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger">Enviar Reporte</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
+{% endif %}
+
+{% if user.is_authenticated and landlord_user and user != landlord_user and not landlord_user.is_staff %}
+  {% if user.student_profile or user.landlord_profile %}
+  <div class="modal fade" id="reportLandlordModal" tabindex="-1" aria-labelledby="reportLandlordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="reportLandlordModalLabel">🟡 Reportar Arrendador</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" action="{% url 'inquiries:report_user' landlord_user.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.path }}">
+          <div class="modal-body">
+            <p>¿Estás seguro de reportar a este arrendador?</p>
+            <p><strong>{{ landlord_user.get_full_name|default:landlord_user.username }}</strong></p>
+
+            <div class="mb-3">
+              <label for="reportLandlordType" class="form-label">Tipo de reporte:</label>
+              <select class="form-select" id="reportLandlordType" name="report_type" required>
+                <option value="FRAUD">Fraude</option>
+                <option value="HARASSMENT">Acoso</option>
+                <option value="INAPPROPRIATE_LANGUAGE">Lenguaje inapropiado</option>
+                <option value="MISLEADING_CONTENT">Contenido engañoso</option>
+                <option value="OTHER" selected>Otro</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="reportLandlordReason" class="form-label">Motivo del reporte:</label>
+              <textarea class="form-control" id="reportLandlordReason" name="reason" rows="4" minlength="10" maxlength="255" required placeholder="Describe el motivo de tu reporte (mín. 10, máx. 255 caracteres)"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-warning">Enviar Reporte</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+{% endif %}
+
+{% for comment in comments %}
+  {% if user.is_authenticated and user != comment.author and not comment.author.is_staff %}
+    {% if user.student_profile or user.landlord_profile %}
+    <div class="modal fade" id="reportCommentUser{{ comment.id }}Modal" tabindex="-1" aria-labelledby="reportCommentUser{{ comment.id }}ModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="reportCommentUser{{ comment.id }}ModalLabel">🟡 Reportar Usuario</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <form method="post" action="{% url 'inquiries:report_user' comment.author.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <div class="modal-body">
+              <p>¿Estás seguro de reportar a este usuario?</p>
+              <p><strong>{{ comment.author.get_full_name|default:comment.author.username }}</strong></p>
+
+              <div class="mb-3">
+                <label for="reportCommentUser{{ comment.id }}Type" class="form-label">Tipo de reporte:</label>
+                <select class="form-select" id="reportCommentUser{{ comment.id }}Type" name="report_type" required>
+                  <option value="FRAUD">Fraude</option>
+                  <option value="HARASSMENT">Acoso</option>
+                  <option value="INAPPROPRIATE_LANGUAGE">Lenguaje inapropiado</option>
+                  <option value="MISLEADING_CONTENT">Contenido engañoso</option>
+                  <option value="OTHER" selected>Otro</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="reportCommentUser{{ comment.id }}Reason" class="form-label">Motivo del reporte:</label>
+                <textarea class="form-control" id="reportCommentUser{{ comment.id }}Reason" name="reason" rows="4" minlength="10" maxlength="255" required placeholder="Describe el motivo de tu reporte (mín. 10, máx. 255 caracteres)"></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              <button type="submit" class="btn btn-warning">Enviar Reporte</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  {% endif %}
+{% endfor %}
+
+{% for comment in comments %}
+  {% for reply in comment.replies.all %}
+    {% if user.is_authenticated and user != reply.author and not reply.author.is_staff %}
+      {% if user.student_profile or user.landlord_profile %}
+      <div class="modal fade" id="reportReplyUser{{ reply.id }}Modal" tabindex="-1" aria-labelledby="reportReplyUser{{ reply.id }}ModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="reportReplyUser{{ reply.id }}ModalLabel">🟡 Reportar Usuario</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'inquiries:report_user' reply.author.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{{ request.path }}">
+              <div class="modal-body">
+                <p>¿Estás seguro de reportar a este usuario?</p>
+                <p><strong>{{ reply.author.get_full_name|default:reply.author.username }}</strong></p>
+
+                <div class="mb-3">
+                  <label for="reportReplyUser{{ reply.id }}Type" class="form-label">Tipo de reporte:</label>
+                  <select class="form-select" id="reportReplyUser{{ reply.id }}Type" name="report_type" required>
+                    <option value="FRAUD">Fraude</option>
+                    <option value="HARASSMENT">Acoso</option>
+                    <option value="INAPPROPRIATE_LANGUAGE">Lenguaje inapropiado</option>
+                    <option value="MISLEADING_CONTENT">Contenido engañoso</option>
+                    <option value="OTHER" selected>Otro</option>
+                  </select>
+                </div>
+
+                <div class="mb-3">
+                  <label for="reportReplyUser{{ reply.id }}Reason" class="form-label">Motivo del reporte:</label>
+                  <textarea class="form-control" id="reportReplyUser{{ reply.id }}Reason" name="reason" rows="4" minlength="10" maxlength="255" required placeholder="Describe el motivo de tu reporte (mín. 10, máx. 255 caracteres)"></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-warning">Enviar Reporte</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+{% endfor %}
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -389,4 +597,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+
+<div class="modal fade" id="imageZoomModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content bg-dark">
+      <div class="modal-body p-0">
+        <img id="imageZoomModalImg" src="" alt="Imagen ampliada" class="modal-full-image">
+      </div>
+      <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
+              data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
 {% endblock %}
