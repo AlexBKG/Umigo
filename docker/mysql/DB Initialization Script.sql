@@ -742,6 +742,35 @@ BEGIN
     END IF;
 END$$
 
+-- Trigger 12: Ocultar listings cuando un landlord se desactiva
+DROP TRIGGER IF EXISTS trg_landlord_deactivate_hide_listings$$
+
+CREATE TRIGGER trg_landlord_deactivate_hide_listings
+AFTER UPDATE ON users_user
+FOR EACH ROW
+BEGIN
+    /* Cuando un usuario (landlord) pasa de activo a inactivo,
+       todos sus listings se marcan como NO disponibles.
+       
+       RAZÓN: No tiene sentido mostrar arriendos de usuarios suspendidos/inactivos.
+       
+       NOTA: Al reactivar al usuario (is_active 0→1), los listings NO se reactivan
+       automáticamente. El landlord debe revisarlos y activarlos manualmente.
+    */
+    
+    IF (OLD.is_active = TRUE OR OLD.is_active = 1)
+       AND (NEW.is_active = FALSE OR NEW.is_active = 0) THEN
+       
+       -- Marcar como NO disponibles todos los listings activos de este landlord
+       UPDATE listing AS l
+       INNER JOIN users_landlord AS ll
+               ON ll.id = l.owner_id
+       SET l.available = FALSE
+       WHERE ll.user_id = NEW.id
+         AND l.available = TRUE;   -- Solo actualizar los que están disponibles
+    END IF;
+END$$
+
 DELIMITER ;
 
 -- =====================================================
