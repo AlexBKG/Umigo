@@ -742,6 +742,35 @@ BEGIN
     END IF;
 END$$
 
+-- Trigger 12: Ocultar listings cuando un landlord se desactiva
+DROP TRIGGER IF EXISTS trg_landlord_deactivate_hide_listings$$
+
+CREATE TRIGGER trg_landlord_deactivate_hide_listings
+AFTER UPDATE ON users_user
+FOR EACH ROW
+BEGIN
+    /* Cuando un usuario (landlord) pasa de activo a inactivo,
+       todos sus listings se marcan como NO disponibles.
+       
+       RAZÓN: No tiene sentido mostrar arriendos de usuarios suspendidos/inactivos.
+       
+       NOTA: Al reactivar al usuario (is_active 0→1), los listings NO se reactivan
+       automáticamente. El landlord debe revisarlos y activarlos manualmente.
+    */
+    
+    IF (OLD.is_active = TRUE OR OLD.is_active = 1)
+       AND (NEW.is_active = FALSE OR NEW.is_active = 0) THEN
+       
+       -- Marcar como NO disponibles todos los listings activos de este landlord
+       UPDATE listing AS l
+       INNER JOIN users_landlord AS ll
+               ON ll.id = l.owner_id
+       SET l.available = FALSE
+       WHERE ll.user_id = NEW.id
+         AND l.available = TRUE;   -- Solo actualizar los que están disponibles
+    END IF;
+END$$
+
 DELIMITER ;
 
 -- =====================================================
@@ -849,60 +878,3 @@ ALTER TABLE review
 ADD CONSTRAINT unique_student_listing 
 UNIQUE (student_id, listing_id)
 COMMENT '1 review por student/listing (regla de negocio)';
-
--- =========================================================================
--- ✅ VERIFICACIÓN POST-MIGRACIÓN
--- =========================================================================
-
--- Verificar que admin.user_id existe
-SELECT 
-    COLUMN_NAME, 
-    DATA_TYPE, 
-    IS_NULLABLE, 
-    COLUMN_KEY,
-    COLUMN_COMMENT
-FROM INFORMATION_SCHEMA.COLUMNS
-WHERE TABLE_SCHEMA = 'umigo' 
-  AND TABLE_NAME = 'admin'
-  AND COLUMN_NAME = 'user_id';
-
--- Verificar constraint UNIQUE en review
-SELECT 
-    CONSTRAINT_NAME,
-    TABLE_NAME,
-    COLUMN_NAME
-FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-WHERE TABLE_SCHEMA = 'umigo'
-  AND TABLE_NAME = 'review'
-  AND CONSTRAINT_NAME = 'unique_student_listing';
-
--- Verificar FK de admin.user_id
-SELECT 
-    CONSTRAINT_NAME,
-    TABLE_NAME,
-    COLUMN_NAME,
-    REFERENCED_TABLE_NAME,
-    REFERENCED_COLUMN_NAME
-FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-WHERE TABLE_SCHEMA = 'umigo'
-  AND TABLE_NAME = 'admin'
-  AND COLUMN_NAME = 'user_id'
-  AND REFERENCED_TABLE_NAME IS NOT NULL;
-
--- =========================================================================
--- 📊 RESUMEN DE CAMBIOS v3.4 → v3.5
--- =========================================================================
--- ✅ admin.user_id agregado (BIGINT NULL UNIQUE con FK a users_user)
--- ✅ review UNIQUE(student_id, listing_id) agregado
--- ✅ Índices creados para performance
--- ✅ Django models ahora usan managed=False (no modifican estructura)
--- ✅ Triggers v3.4 se mantienen intactos y funcionales
--- ✅ Sistema completo compatible con Django + MySQL
-
--- NOTAS FINALES:
--- - Ejecutar este script UNA SOLA VEZ después de crear la BD inicial
--- - Si admin.user_id ya existe, comentar el ALTER TABLE correspondiente
--- - Si unique_student_listing ya existe, comentar el ALTER TABLE correspondiente
--- - Los modelos Django tienen managed=False para NO modificar estas tablas
--- - Versión final: 3.5 (compatible con reports-system-clean branch)
-

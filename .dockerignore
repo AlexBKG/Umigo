@@ -1,0 +1,37 @@
+#Python/Django
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+#Virtual environments
+venv/
+.venv/
+env
+env/
+.env/
+.env
+.env.*
+.env.*
+
+#Django static & media
+media/
+
+#Git
+.git/
+.gitignore
+
+#OS/Editor specifics
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+#Docker files
+docker-compose*.yml
+Dockerfile.dev
+Dockerfile.prod
+
+#Documentation
+documentation/
