@@ -1,0 +1,28 @@
+# Testing Dependencies for UMIGO - VERSIÓN MINIMALISTA (2 días)
+# Solo lo esencial para empezar rápido
+
+# Core testing framework (ESENCIALES)
+pytest==8.3.4
+pytest-django==4.9.0
+pytest-cov==6.0.0
+
+# Data generation (ESENCIALES)
+factory-boy==3.3.1               # Test data factories
+Faker==33.1.0                    # Realistic fake data
+
+# ======================================
+# OPCIONALES (comentadas - no instalar si no hay tiempo)
+# ======================================
+
+# pytest-xdist==3.6.1            # Tests paralelos (ahorra tiempo pero no crítico)
+# pytest-timeout==2.3.1          # Timeout para tests lentos
+# freezegun==1.5.1               # Manipular tiempo (útil para suspensiones)
+# pytest-mock==3.14.0            # Mocking avanzado
+
+# E2E Testing (NO IMPLEMENTAR en 2 días)
+# selenium==4.27.1
+# playwright==1.49.0
+
+# Code quality (útil pero NO prioritario)
+# black==24.10.0
+# flake8==7.1.1

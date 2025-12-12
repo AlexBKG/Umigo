@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage
 
@@ -35,6 +36,16 @@ class Student(models.Model):
     class Meta:
         managed = False
         db_table = 'users_student'
+    
+    def clean(self):
+        """
+        Validación: Un usuario no puede ser Student y Landlord simultáneamente.
+        """
+        super().clean()
+        if hasattr(self.user, 'landlord_profile'):
+            raise ValidationError(
+                'Este usuario ya es un Landlord. Un usuario no puede ser Student y Landlord al mismo tiempo.'
+            )
 
     def receiveAvailabilityNotification(self, domain, listing):
         mail_subject = 'Umigo: ¡Uno de tus arriendos favoritos está disponible!'
@@ -60,6 +71,16 @@ class Landlord(models.Model):
     class Meta:
         managed = False
         db_table = 'users_landlord'
+    
+    def clean(self):
+        """
+        Validación: Un usuario no puede ser Landlord y Student simultáneamente.
+        """
+        super().clean()
+        if hasattr(self.user, 'student_profile'):
+            raise ValidationError(
+                'Este usuario ya es un Student. Un usuario no puede ser Landlord y Student al mismo tiempo.'
+            )
 
     def __str__(self):
         return self.user.username
